@@ -1,0 +1,912 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>碰碰星 · 你的随身情绪充电站</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: radial-gradient(ellipse at center, #0d0d1a 0%, #02020a 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 20px;
+      overflow-x: hidden;
+      color: #e0e0e0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      position: relative;
+    }
+
+    /* 背景浮动粒子 */
+    .bg-particles {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .particle {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      opacity: 0.15;
+      animation: float 8s infinite ease-in-out, twinkle 3s infinite alternate;
+    }
+
+    .bg-stars-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .bg-star {
+      position: absolute;
+      animation: starPulse 2s infinite ease-in-out, starFloat 8s infinite ease-in-out;
+      will-change: transform;
+    }
+
+    @keyframes starPulse {
+      0% { transform: scale(1); opacity: 0.7; }
+      50% { transform: scale(1.4); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.7; }
+    }
+
+    @keyframes starFloat {
+      0% { transform: translateY(0px); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0px); }
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0) scale(1); opacity: 0.1; }
+      50% { transform: translateY(-30px) scale(1.4); opacity: 0.3; }
+    }
+
+    @keyframes twinkle {
+      0% { opacity: 0.1; }
+      50% { opacity: 0.6; }
+      100% { opacity: 0.1; }
+    }
+
+    .container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+    }
+
+    .title {
+      font-size: 1.6rem;
+      font-weight: 300;
+      letter-spacing: 4px;
+      color: #8888aa;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .title em {
+      font-style: normal;
+      color: #ffd966;
+      font-weight: 400;
+    }
+
+    .black-hole-wrapper {
+      position: relative;
+      width: 180px;
+      height: 180px;
+    }
+
+    .black-hole {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 30% 30%, #1a1a2e, #000000 90%);
+      box-shadow: 0 0 40px rgba(100, 50, 200, 0.4), 0 0 80px rgba(0, 0, 0, 0.9);
+      transition: transform 0.3s ease, box-shadow 0.3s;
+      z-index: 3;
+    }
+
+    .accretion-disk {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: rgba(180, 130, 255, 0.5);
+      border-right-color: rgba(180, 130, 255, 0.2);
+      animation: spin 4s linear infinite;
+      z-index: 2;
+      filter: blur(2px);
+    }
+
+    .accretion-disk:nth-child(2) {
+      width: 140px;
+      height: 140px;
+      border-top-color: rgba(255, 200, 100, 0.4);
+      border-left-color: rgba(255, 200, 100, 0.2);
+      animation-duration: 6s;
+      animation-direction: reverse;
+    }
+
+    @keyframes spin {
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+
+    .input-area {
+      width: 100%;
+      background: rgba(20, 20, 35, 0.7);
+      backdrop-filter: blur(15px);
+      border-radius: 24px;
+      padding: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: #ddd;
+      font-size: 1rem;
+      line-height: 1.5;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+      min-height: 60px;
+    }
+
+    textarea::placeholder {
+      color: #555;
+      font-style: italic;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #ccc;
+      padding: 12px 20px;
+      border-radius: 40px;
+      font-size: 0.95rem;
+      font-weight: 500;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      flex: 1;
+      white-space: nowrap;
+    }
+
+    .btn.primary {
+      background: rgba(200, 160, 255, 0.2);
+      border-color: rgba(200, 160, 255, 0.4);
+      color: #e8d5ff;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+
+    .btn:active {
+      transform: scale(0.96);
+      background: rgba(255, 255, 255, 0.12);
+    }
+
+    .btn.primary:active {
+      background: rgba(200, 160, 255, 0.35);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+
+    .voice-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex: 0 0 auto;
+      font-size: 1.3rem;
+    }
+
+    .voice-btn.listening {
+      background: rgba(255, 80, 80, 0.3);
+      border-color: #ff5555;
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(255,80,80,0.5); }
+      70% { box-shadow: 0 0 0 15px rgba(255,80,80,0); }
+      100% { box-shadow: 0 0 0 0 rgba(255,80,80,0); }
+    }
+
+    .star-dashboard {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 20;
+      background: rgba(15, 15, 25, 0.8);
+      backdrop-filter: blur(10px);
+      border-radius: 30px;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      border: 1px solid rgba(255, 215, 0, 0.3);
+      box-shadow: 0 0 25px rgba(255, 200, 0, 0.15);
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .star-dashboard:hover {
+      box-shadow: 0 0 35px rgba(255, 200, 0, 0.3);
+    }
+
+    .star-emoji {
+      font-size: 1.4rem;
+      animation: starGlow 2s infinite alternate;
+    }
+
+    @keyframes starGlow {
+      0% { text-shadow: 0 0 5px #ffd700; }
+      100% { text-shadow: 0 0 20px #ffaa00; }
+    }
+
+    .star-count {
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: #ffd966;
+    }
+
+    .flying-star {
+      position: fixed;
+      z-index: 30;
+      pointer-events: none;
+      transition: all 0.8s cubic-bezier(0.25, 0.1, 0.15, 1.2);
+    }
+
+    .galaxy-modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      backdrop-filter: blur(10px);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s;
+    }
+
+    .galaxy-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .galaxy-content {
+      width: 90%;
+      max-width: 400px;
+      max-height: 70vh;
+      overflow-y: auto;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .galaxy-star {
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(30,30,50,0.7);
+      border-radius: 12px;
+    }
+
+    .close-btn {
+      margin-top: 20px;
+      color: #aaa;
+      background: transparent;
+      border: 1px solid #aaa;
+      padding: 8px 24px;
+      border-radius: 25px;
+      cursor: pointer;
+    }
+
+    .empty-hint {
+      color: #666;
+      text-align: center;
+      padding: 40px;
+      width: 100%;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.85);
+      color: #ddd;
+      padding: 10px 22px;
+      border-radius: 30px;
+      font-size: 0.9rem;
+      z-index: 200;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+    }
+
+    .feedback-trigger {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      z-index: 50;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: rgba(30, 30, 50, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #999;
+      transition: all 0.3s;
+    }
+
+    .feedback-trigger:active {
+      background: rgba(60, 60, 80, 0.7);
+      transform: scale(0.94);
+      color: #ccc;
+    }
+
+    .feedback-modal {
+      position: fixed;
+      top: 70px;
+      left: 20px;
+      z-index: 60;
+      background: rgba(22, 22, 38, 0.96);
+      backdrop-filter: blur(20px);
+      border-radius: 18px;
+      padding: 22px 20px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5);
+      width: 250px;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
+      transition: all 0.25s ease;
+    }
+
+    .feedback-modal.open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .feedback-modal .qr-code {
+      width: 100%;
+      max-width: 200px;
+      height: auto;
+      margin: 0 auto 14px;
+      display: block;
+      background: #fff;
+      border-radius: 10px;
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    .feedback-modal .hint {
+      font-size: 0.78rem;
+      color: #aaa;
+      text-align: center;
+      line-height: 1.7;
+    }
+
+    .feedback-modal .hint .warm {
+      color: #e8d5b0;
+    }
+
+    .feedback-modal .social-row {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-top: 12px;
+      font-size: 0.7rem;
+      color: #777;
+    }
+
+    .feedback-modal .social-row span {
+      background: rgba(255,255,255,0.05);
+      padding: 4px 10px;
+      border-radius: 12px;
+    }
+
+    .feedback-overlay {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      z-index: 55;
+      pointer-events: none;
+    }
+
+    .feedback-overlay.active {
+      pointer-events: auto;
+    }
+
+    .hint-text {
+      font-size: 0.7rem;
+      color: #555;
+      text-align: center;
+      margin-top: -8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-particles" id="particles"></div>
+  <div class="bg-stars-container" id="bgStarsContainer"></div>
+
+  <div class="container">
+    <div class="title">碰碰星· <em>你的随身情绪充电站</em></div>
+
+    <div class="black-hole-wrapper" id="blackHoleWrapper">
+      <div class="accretion-disk"></div>
+      <div class="accretion-disk"></div>
+      <div class="black-hole" id="blackHole"></div>
+    </div>
+
+    <div class="input-area">
+      <textarea id="textInput" placeholder="把烦恼丢进去，吐出一颗星星…" maxlength="500"></textarea>
+      <div class="button-row">
+        <button class="btn primary" id="throwBtn">丢进黑洞</button>
+        <button class="voice-btn" id="voiceBtn" title="按住说话">🎤</button>
+      </div>
+    </div>
+    <div class="hint-text">每吐槽一次，夜空里就多一颗星</div>
+  </div>
+
+  <div class="star-dashboard" id="starDashboard">
+    <span class="star-emoji">⭐</span>
+    <span class="star-count" id="starCount">0</span>
+  </div>
+
+  <div class="galaxy-modal" id="galaxyModal">
+    <div class="galaxy-content" id="galaxyContent"></div>
+    <button class="close-btn" id="closeGalaxy">关闭</button>
+  </div>
+
+  <div class="feedback-trigger" id="feedbackTrigger" title="有小困在听">✉</div>
+  <div class="feedback-overlay" id="feedbackOverlay"></div>
+  <div class="feedback-modal" id="feedbackModal">
+    <img class="qr-code" id="qrImage" src="Min.png" alt="关注小Min" onclick="window.open(this.src)">
+    <div class="hint">
+      <span class="warm">扫码关注小红书</span><br>
+      <br>
+      想聊更多？关注后私信我
+    </div>
+    <div class="social-row">
+      <span>希望你天天开心！♥</span>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function() {
+      const particlesContainer = document.getElementById('particles');
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        const size = Math.random() * 2.5 + 1;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 8 + 's';
+        particle.style.animationDuration = (Math.random() * 8 + 6) + 's';
+        particlesContainer.appendChild(particle);
+      }
+
+      let stars = [];
+      const STORAGE_KEY = 'pengpeng_stars';
+      
+      function loadStars() {
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) stars = JSON.parse(stored);
+        } catch (e) { stars = []; }
+      }
+
+      function saveStars() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(stars));
+      }
+
+      function addStar(starData) {
+        stars.push(starData);
+        saveStars();
+        updateStarCounter();
+      }
+
+      function updateStarCounter() {
+        document.getElementById('starCount').textContent = stars.length;
+      }
+
+      function generateUniqueStarSVG(text, timestamp) {
+        let hash = 0;
+        for (let i = 0; i < text.length; i++) {
+          hash = ((hash << 5) - hash) + text.charCodeAt(i);
+          hash |= 0;
+        }
+        hash = Math.abs(hash);
+        
+        const hue = (hash % 360 + (timestamp % 60) * 6) % 360;
+        const saturation = 60 + (hash % 30);
+        const lightness = 55 + (hash % 25);
+        const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+        const glowColor = `hsl(${hue}, ${saturation}%, ${lightness + 15}%)`;
+        
+        const points = 5 + (hash % 4);
+        const outerR = 20;
+        const innerR = 7 + (hash % 7);
+        const angleOffset = (hash % 360) * Math.PI / 180;
+        
+        let coords = [];
+        for (let i = 0; i < points * 2; i++) {
+          const angle = angleOffset + (i * Math.PI) / points;
+          const r = i % 2 === 0 ? outerR : innerR;
+          const x = 24 + r * Math.cos(angle);
+          const y = 24 + r * Math.sin(angle);
+          coords.push(`${x.toFixed(1)},${y.toFixed(1)}`);
+        }
+        const pointsStr = coords.join(' ');
+        const rotation = (hash % 30) - 15;
+        
+        return `
+          <svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <filter id="glow_${timestamp}">
+                <feGaussianBlur stdDeviation="1.5" result="blur"/>
+                <feMerge>
+                  <feMergeNode in="blur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <polygon points="${pointsStr}" fill="${color}" stroke="${glowColor}" stroke-width="0.8" 
+                     transform="rotate(${rotation} 24 24)" filter="url(#glow_${timestamp})"/>
+          </svg>
+        `;
+      }
+
+      function createBackgroundStar() {
+        const container = document.getElementById('bgStarsContainer');
+        const starDiv = document.createElement('div');
+        starDiv.className = 'bg-star';
+        
+        const maxX = window.innerWidth - 40;
+        const maxY = window.innerHeight - 40;
+        let posX = Math.random() * maxX;
+        let posY = Math.random() * maxY;
+        if (posX > window.innerWidth - 120 && posY < 80) {
+          posY = 80 + Math.random() * (maxY - 80);
+        }
+        
+        const size = 14 + Math.random() * 22;
+        const hue = Math.floor(Math.random() * 360);
+        const color = `hsl(${hue}, 80%, 75%)`;
+        const glowColor = `hsl(${hue}, 90%, 85%)`;
+        
+        const center = size / 2;
+        const spikeLen = size * 0.45;
+        const innerLen = size * 0.15;
+        const points = [];
+        for (let i = 0; i < 4; i++) {
+          const angleOut = (i * 90) * Math.PI / 180;
+          const angleIn = ((i * 90) + 45) * Math.PI / 180;
+          const xOut = center + spikeLen * Math.cos(angleOut);
+          const yOut = center + spikeLen * Math.sin(angleOut);
+          const xIn = center + innerLen * Math.cos(angleIn);
+          const yIn = center + innerLen * Math.sin(angleIn);
+          points.push(`${xOut.toFixed(1)},${yOut.toFixed(1)}`);
+          points.push(`${xIn.toFixed(1)},${yIn.toFixed(1)}`);
+        }
+        const pointsStr = points.join(' ');
+        
+        const uniqueId = 'bg' + Date.now() + Math.random();
+        const svgNS = "http://www.w3.org/2000/svg";
+        const svg = document.createElementNS(svgNS, "svg");
+        svg.setAttribute("width", size);
+        svg.setAttribute("height", size);
+        svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+        svg.innerHTML = `
+          <defs>
+            <filter id="glow_${uniqueId}">
+              <feGaussianBlur stdDeviation="1.2" result="blur"/>
+              <feMerge>
+                <feMergeNode in="blur"/>
+                <feMergeNode in="SourceGraphic"/>
+              </feMerge>
+            </filter>
+          </defs>
+          <polygon points="${pointsStr}" fill="${color}" stroke="${glowColor}" stroke-width="0.5" filter="url(#glow_${uniqueId})"/>
+        `;
+        
+        starDiv.appendChild(svg);
+        starDiv.style.left = posX + 'px';
+        starDiv.style.top = posY + 'px';
+        starDiv.style.width = size + 'px';
+        starDiv.style.height = size + 'px';
+        
+        container.appendChild(starDiv);
+      }
+
+      function showGalaxy() {
+        const modal = document.getElementById('galaxyModal');
+        const content = document.getElementById('galaxyContent');
+        content.innerHTML = '';
+        
+        if (stars.length === 0) {
+          content.innerHTML = '<div class="empty-hint">还没有星星<br>去丢一些烦恼吧</div>';
+        } else {
+          stars.forEach(star => {
+            const div = document.createElement('div');
+            div.className = 'galaxy-star';
+            div.innerHTML = star.svg;
+            content.appendChild(div);
+          });
+        }
+        
+        modal.classList.add('open');
+      }
+
+      function hideGalaxy() {
+        document.getElementById('galaxyModal').classList.remove('open');
+      }
+
+      function vibrate(pattern) {
+        if (navigator.vibrate) navigator.vibrate(pattern);
+      }
+
+      function showToast(msg) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+      }
+
+      const throwBtn = document.getElementById('throwBtn');
+      const textInput = document.getElementById('textInput');
+      const blackHole = document.getElementById('blackHole');
+      const blackHoleWrapper = document.getElementById('blackHoleWrapper');
+
+      function triggerBlackHole() {
+        const text = textInput.value.trim();
+        if (!text) {
+          showToast('写点什么再丢进去吧');
+          vibrate(30);
+          return;
+        }
+
+        throwBtn.disabled = true;
+        vibrate([30, 50, 30]);
+
+        const textRect = textInput.getBoundingClientRect();
+        const holeRect = blackHoleWrapper.getBoundingClientRect();
+        const centerX = holeRect.left + holeRect.width / 2;
+        const centerY = holeRect.top + holeRect.height / 2;
+        const chars = text.split('');
+        
+        chars.forEach((char, index) => {
+          const span = document.createElement('span');
+          span.textContent = char;
+          span.style.position = 'fixed';
+          span.style.left = (textRect.left + Math.random() * textRect.width) + 'px';
+          span.style.top = (textRect.top + Math.random() * textRect.height) + 'px';
+          span.style.color = '#ddd';
+          span.style.fontSize = '1.2rem';
+          span.style.fontWeight = 'bold';
+          span.style.zIndex = '25';
+          span.style.pointerEvents = 'none';
+          span.style.transition = 'all 0.7s cubic-bezier(0.25, 0.1, 0.25, 1)';
+          span.style.opacity = '1';
+          document.body.appendChild(span);
+          
+          requestAnimationFrame(() => {
+            span.style.transform = `translate(${centerX - parseFloat(span.style.left)}px, ${centerY - parseFloat(span.style.top)}px) scale(0.2) rotate(${Math.random() * 720}deg)`;
+            span.style.opacity = '0';
+          });
+          
+          setTimeout(() => { span.remove(); }, 700 + index * 10);
+        });
+
+        textInput.value = '';
+
+        setTimeout(() => {
+          blackHole.style.transform = 'translate(-50%, -50%) scale(1.2)';
+          blackHole.style.boxShadow = '0 0 60px rgba(150, 50, 220, 0.8), 0 0 100px rgba(0,0,0,0.9)';
+          vibrate(50);
+        }, 400);
+
+        setTimeout(() => {
+          blackHole.style.transform = 'translate(-50%, -50%) scale(1)';
+          blackHole.style.boxShadow = '0 0 40px rgba(100, 50, 200, 0.4), 0 0 80px rgba(0, 0, 0, 0.9)';
+          
+          const timestamp = Date.now();
+          const svgString = generateUniqueStarSVG(text, timestamp);
+          addStar({ svg: svgString, text: text.slice(0, 20), time: timestamp });
+          
+          const flyingStar = document.createElement('div');
+          flyingStar.className = 'flying-star';
+          flyingStar.innerHTML = svgString;
+          document.body.appendChild(flyingStar);
+          
+          const holeCenterX = holeRect.left + holeRect.width / 2 - 24;
+          const holeCenterY = holeRect.top + holeRect.height / 2 - 24;
+          flyingStar.style.left = holeCenterX + 'px';
+          flyingStar.style.top = holeCenterY + 'px';
+          flyingStar.style.opacity = '1';
+          flyingStar.style.transform = 'scale(1.5)';
+          
+          const dashboard = document.getElementById('starDashboard');
+          const dashRect = dashboard.getBoundingClientRect();
+          const targetX = dashRect.left + dashRect.width / 2 - 24;
+          const targetY = dashRect.top + dashRect.height / 2 - 24;
+          
+          requestAnimationFrame(() => {
+            flyingStar.style.transform = 'scale(1)';
+            flyingStar.style.left = targetX + 'px';
+            flyingStar.style.top = targetY + 'px';
+          });
+          
+          setTimeout(() => {
+            flyingStar.remove();
+            vibrate(20);
+          }, 800);
+
+          createBackgroundStar();
+          
+          throwBtn.disabled = false;
+        }, 800);
+      }
+
+      throwBtn.addEventListener('click', triggerBlackHole);
+
+      textInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && e.ctrlKey) {
+          e.preventDefault();
+          triggerBlackHole();
+        }
+      });
+
+      const voiceBtn = document.getElementById('voiceBtn');
+      let recognition = null;
+      let isListening = false;
+
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = (event) => {
+          textInput.value += event.results[0][0].transcript;
+          stopListening();
+        };
+
+        recognition.onerror = () => {
+          stopListening();
+          showToast('语音识别失败，试着手动输入吧');
+        };
+
+        recognition.onend = () => { stopListening(); };
+      } else {
+        voiceBtn.style.display = 'none';
+      }
+
+      function startListening() {
+        if (!recognition) return;
+        try {
+          recognition.start();
+          isListening = true;
+          voiceBtn.classList.add('listening');
+          voiceBtn.textContent = '🔴';
+          vibrate(20);
+          showToast('小困在听...');
+        } catch (e) {}
+      }
+
+      function stopListening() {
+        if (recognition && isListening) recognition.stop();
+        isListening = false;
+        voiceBtn.classList.remove('listening');
+        voiceBtn.textContent = '🎤';
+      }
+
+      voiceBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startListening(); });
+      voiceBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopListening(); });
+      voiceBtn.addEventListener('pointerleave', () => { if (isListening) stopListening(); });
+      voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
+      voiceBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
+
+      document.getElementById('starDashboard').addEventListener('click', showGalaxy);
+      document.getElementById('closeGalaxy').addEventListener('click', hideGalaxy);
+      document.getElementById('galaxyModal').addEventListener('click', (e) => {
+        if (e.target === document.getElementById('galaxyModal')) hideGalaxy();
+      });
+
+      const feedbackTrigger = document.getElementById('feedbackTrigger');
+      const feedbackModal = document.getElementById('feedbackModal');
+      const feedbackOverlay = document.getElementById('feedbackOverlay');
+
+      feedbackTrigger.addEventListener('click', () => {
+        const isOpen = feedbackModal.classList.contains('open');
+        if (isOpen) {
+          feedbackModal.classList.remove('open');
+          feedbackOverlay.classList.remove('active');
+        } else {
+          feedbackModal.classList.add('open');
+          feedbackOverlay.classList.add('active');
+        }
+      });
+
+      feedbackOverlay.addEventListener('click', () => {
+        feedbackModal.classList.remove('open');
+        feedbackOverlay.classList.remove('active');
+      });
+
+      loadStars();
+      updateStarCounter();
+    })();
+  </script>
+</body>
+</html>
