@@ -27,7 +27,7 @@
       position: relative;
     }
 
-    /* 背景浮动粒子 */
+    /* 背景浮动粒子（远星） */
     .bg-particles {
       position: fixed;
       top: 0; left: 0;
@@ -44,6 +44,7 @@
       animation: float 8s infinite ease-in-out, twinkle 3s infinite alternate;
     }
 
+    /* 动态背景四角星容器 */
     .bg-stars-container {
       position: fixed;
       top: 0; left: 0;
@@ -81,6 +82,7 @@
       100% { opacity: 0.1; }
     }
 
+    /* 主容器 */
     .container {
       position: relative;
       z-index: 2;
@@ -92,21 +94,27 @@
       gap: 24px;
     }
 
+    /* 标题 - 上下结构 */
     .title {
-      font-size: 1.6rem;
+      font-size: 1.8rem;
       font-weight: 300;
-      letter-spacing: 4px;
-      color: #8888aa;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    .title em {
-      font-style: normal;
+      letter-spacing: 6px;
       color: #ffd966;
-      font-weight: 400;
+      text-align: center;
+      line-height: 1.2;
     }
 
+    .subtitle {
+      font-size: 1.9rem;
+      font-weight: 300;
+      color: #8888aa;
+      letter-spacing: 3px;
+      text-align: center;
+      margin-top: -12px;
+      margin-bottom: 8px;
+    }
+
+    /* 黑洞核心 */
     .black-hole-wrapper {
       position: relative;
       width: 180px;
@@ -155,6 +163,7 @@
       to { transform: translate(-50%, -50%) rotate(360deg); }
     }
 
+    /* 输入区 */
     .input-area {
       width: 100%;
       background: rgba(20, 20, 35, 0.7);
@@ -244,20 +253,10 @@
       cursor: pointer;
       flex: 0 0 auto;
       font-size: 1.3rem;
+      color: #ccc;
     }
 
-    .voice-btn.listening {
-      background: rgba(255, 80, 80, 0.3);
-      border-color: #ff5555;
-      animation: pulse 1s infinite;
-    }
-
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(255,80,80,0.5); }
-      70% { box-shadow: 0 0 0 15px rgba(255,80,80,0); }
-      100% { box-shadow: 0 0 0 0 rgba(255,80,80,0); }
-    }
-
+    /* 星空计数器 */
     .star-dashboard {
       position: fixed;
       top: 20px;
@@ -296,6 +295,7 @@
       color: #ffd966;
     }
 
+    /* 飞出星星动画层 */
     .flying-star {
       position: fixed;
       z-index: 30;
@@ -303,6 +303,7 @@
       transition: all 0.8s cubic-bezier(0.25, 0.1, 0.15, 1.2);
     }
 
+    /* 星系弹窗 */
     .galaxy-modal {
       position: fixed;
       top: 0; left: 0;
@@ -363,6 +364,7 @@
       width: 100%;
     }
 
+    /* 提示信息 */
     .toast {
       position: fixed;
       bottom: 30px;
@@ -383,6 +385,7 @@
       opacity: 1;
     }
 
+    /* 反馈入口 - 左上角信封 */
     .feedback-trigger {
       position: fixed;
       top: 20px;
@@ -483,11 +486,34 @@
       pointer-events: auto;
     }
 
+    /* 底部引导文字 */
     .hint-text {
       font-size: 0.7rem;
       color: #555;
       text-align: center;
       margin-top: -8px;
+    }
+
+    /* 二维码放大浮层 */
+    #qrZoomOverlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      z-index: 999;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(5px);
+    }
+
+    #qrZoomImg {
+      max-width: 85%;
+      max-height: 85%;
+      border-radius: 18px;
+      background: #fff;
+      padding: 12px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
     }
   </style>
 </head>
@@ -496,7 +522,8 @@
   <div class="bg-stars-container" id="bgStarsContainer"></div>
 
   <div class="container">
-    <div class="title">碰碰星· <em>你的随身情绪充电站</em></div>
+    <div class="title">碰碰星</div>
+    <div class="subtitle">你的随身情绪充电站</div>
 
     <div class="black-hole-wrapper" id="blackHoleWrapper">
       <div class="accretion-disk"></div>
@@ -508,7 +535,7 @@
       <textarea id="textInput" placeholder="把烦恼丢进去，吐出一颗星星…" maxlength="500"></textarea>
       <div class="button-row">
         <button class="btn primary" id="throwBtn">丢进黑洞</button>
-        <button class="voice-btn" id="voiceBtn" title="按住说话">🎤</button>
+        <button class="voice-btn" id="voiceBtn" title="点击后按键盘麦克风说话">⌨</button>
       </div>
     </div>
     <div class="hint-text">每吐槽一次，夜空里就多一颗星</div>
@@ -524,24 +551,32 @@
     <button class="close-btn" id="closeGalaxy">关闭</button>
   </div>
 
+  <!-- 反馈入口 -->
   <div class="feedback-trigger" id="feedbackTrigger" title="有小困在听">✉</div>
   <div class="feedback-overlay" id="feedbackOverlay"></div>
   <div class="feedback-modal" id="feedbackModal">
-    <img class="qr-code" id="qrImage" src="Min.png" alt="关注小Min" onclick="window.open(this.src)">
+    <!-- 替换为你的小红书二维码图片地址 -->
+    <img class="qr-code" id="qrImage" src="你的小红书二维码地址.jpg" alt="关注小Min" onclick="openQrZoom(this.src)">
     <div class="hint">
       <span class="warm">扫码关注小红书</span><br>
-      <br>
+      看小困的日常和产品更新<br>
       想聊更多？关注后私信我
     </div>
     <div class="social-row">
-      <span>希望你天天开心！♥</span>
+      <span>📕 小Min（低电量）</span>
     </div>
+  </div>
+
+  <!-- 二维码放大浮层 -->
+  <div id="qrZoomOverlay" onclick="closeQrZoom()">
+    <img id="qrZoomImg" src="" alt="二维码大图" onclick="event.stopPropagation();">
   </div>
 
   <div class="toast" id="toast"></div>
 
   <script>
     (function() {
+      // 初始化静态背景粒子
       const particlesContainer = document.getElementById('particles');
       for (let i = 0; i < 60; i++) {
         const particle = document.createElement('div');
@@ -556,23 +591,35 @@
         particlesContainer.appendChild(particle);
       }
 
+      // 数据存储
       let stars = [];
+      let bgStarsData = [];
       const STORAGE_KEY = 'pengpeng_stars';
-      
-      function loadStars() {
+
+      function loadAllData() {
         try {
           const stored = localStorage.getItem(STORAGE_KEY);
-          if (stored) stars = JSON.parse(stored);
-        } catch (e) { stars = []; }
+          if (stored) {
+            const data = JSON.parse(stored);
+            stars = data.stars || [];
+            bgStarsData = data.bgStars || [];
+          }
+        } catch (e) {
+          stars = [];
+          bgStarsData = [];
+        }
       }
 
-      function saveStars() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(stars));
+      function saveAllData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          stars: stars,
+          bgStars: bgStarsData
+        }));
       }
 
       function addStar(starData) {
         stars.push(starData);
-        saveStars();
+        saveAllData();
         updateStarCounter();
       }
 
@@ -580,6 +627,7 @@
         document.getElementById('starCount').textContent = stars.length;
       }
 
+      // 生成独一无二的星星 SVG（同样用于背景和专属星星）
       function generateUniqueStarSVG(text, timestamp) {
         let hash = 0;
         for (let i = 0; i < text.length; i++) {
@@ -627,68 +675,45 @@
         `;
       }
 
+      // 创建背景星星（和专属星星样式一致）
       function createBackgroundStar() {
         const container = document.getElementById('bgStarsContainer');
         const starDiv = document.createElement('div');
         starDiv.className = 'bg-star';
-        
-        const maxX = window.innerWidth - 40;
-        const maxY = window.innerHeight - 40;
+
+        const maxX = window.innerWidth - 48;
+        const maxY = window.innerHeight - 48;
         let posX = Math.random() * maxX;
         let posY = Math.random() * maxY;
         if (posX > window.innerWidth - 120 && posY < 80) {
           posY = 80 + Math.random() * (maxY - 80);
         }
-        
-        const size = 14 + Math.random() * 22;
-        const hue = Math.floor(Math.random() * 360);
-        const color = `hsl(${hue}, 80%, 75%)`;
-        const glowColor = `hsl(${hue}, 90%, 85%)`;
-        
-        const center = size / 2;
-        const spikeLen = size * 0.45;
-        const innerLen = size * 0.15;
-        const points = [];
-        for (let i = 0; i < 4; i++) {
-          const angleOut = (i * 90) * Math.PI / 180;
-          const angleIn = ((i * 90) + 45) * Math.PI / 180;
-          const xOut = center + spikeLen * Math.cos(angleOut);
-          const yOut = center + spikeLen * Math.sin(angleOut);
-          const xIn = center + innerLen * Math.cos(angleIn);
-          const yIn = center + innerLen * Math.sin(angleIn);
-          points.push(`${xOut.toFixed(1)},${yOut.toFixed(1)}`);
-          points.push(`${xIn.toFixed(1)},${yIn.toFixed(1)}`);
-        }
-        const pointsStr = points.join(' ');
-        
-        const uniqueId = 'bg' + Date.now() + Math.random();
-        const svgNS = "http://www.w3.org/2000/svg";
-        const svg = document.createElementNS(svgNS, "svg");
-        svg.setAttribute("width", size);
-        svg.setAttribute("height", size);
-        svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
-        svg.innerHTML = `
-          <defs>
-            <filter id="glow_${uniqueId}">
-              <feGaussianBlur stdDeviation="1.2" result="blur"/>
-              <feMerge>
-                <feMergeNode in="blur"/>
-                <feMergeNode in="SourceGraphic"/>
-              </feMerge>
-            </filter>
-          </defs>
-          <polygon points="${pointsStr}" fill="${color}" stroke="${glowColor}" stroke-width="0.5" filter="url(#glow_${uniqueId})"/>
-        `;
-        
-        starDiv.appendChild(svg);
+
+        const randomText = 'bg' + Date.now() + Math.random();
+        const svgString = generateUniqueStarSVG(randomText, Date.now());
+        const scale = 0.8 + Math.random() * 1.2;
+        const rotation = Math.random() * 360;
+
+        starDiv.innerHTML = svgString;
         starDiv.style.left = posX + 'px';
         starDiv.style.top = posY + 'px';
-        starDiv.style.width = size + 'px';
-        starDiv.style.height = size + 'px';
-        
+        starDiv.style.width = (48 * scale) + 'px';
+        starDiv.style.height = (48 * scale) + 'px';
+        starDiv.style.transform = `rotate(${rotation}deg)`;
+
         container.appendChild(starDiv);
+
+        bgStarsData.push({
+          x: posX,
+          y: posY,
+          scale: scale,
+          rotation: rotation,
+          svg: svgString
+        });
+        saveAllData();
       }
 
+      // 显示星系弹窗
       function showGalaxy() {
         const modal = document.getElementById('galaxyModal');
         const content = document.getElementById('galaxyContent');
@@ -723,6 +748,7 @@
         setTimeout(() => toast.classList.remove('show'), 2000);
       }
 
+      // 黑洞吸入动画
       const throwBtn = document.getElementById('throwBtn');
       const textInput = document.getElementById('textInput');
       const blackHole = document.getElementById('blackHole');
@@ -784,6 +810,7 @@
           const svgString = generateUniqueStarSVG(text, timestamp);
           addStar({ svg: svgString, text: text.slice(0, 20), time: timestamp });
           
+          // 飞向计数器
           const flyingStar = document.createElement('div');
           flyingStar.className = 'flying-star';
           flyingStar.innerHTML = svgString;
@@ -812,6 +839,7 @@
             vibrate(20);
           }, 800);
 
+          // 生成背景永久星星（样式一致）
           createBackgroundStar();
           
           throwBtn.disabled = false;
@@ -827,63 +855,23 @@
         }
       });
 
+      // 语音输入（系统键盘方案）
       const voiceBtn = document.getElementById('voiceBtn');
-      let recognition = null;
-      let isListening = false;
+      voiceBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        textInput.focus();
+        showToast('请点击键盘上的麦克风🎤说话');
+        textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
 
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN';
-        recognition.interimResults = false;
-        recognition.maxAlternatives = 1;
-
-        recognition.onresult = (event) => {
-          textInput.value += event.results[0][0].transcript;
-          stopListening();
-        };
-
-        recognition.onerror = () => {
-          stopListening();
-          showToast('语音识别失败，试着手动输入吧');
-        };
-
-        recognition.onend = () => { stopListening(); };
-      } else {
-        voiceBtn.style.display = 'none';
-      }
-
-      function startListening() {
-        if (!recognition) return;
-        try {
-          recognition.start();
-          isListening = true;
-          voiceBtn.classList.add('listening');
-          voiceBtn.textContent = '🔴';
-          vibrate(20);
-          showToast('小困在听...');
-        } catch (e) {}
-      }
-
-      function stopListening() {
-        if (recognition && isListening) recognition.stop();
-        isListening = false;
-        voiceBtn.classList.remove('listening');
-        voiceBtn.textContent = '🎤';
-      }
-
-      voiceBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startListening(); });
-      voiceBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopListening(); });
-      voiceBtn.addEventListener('pointerleave', () => { if (isListening) stopListening(); });
-      voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
-      voiceBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
-
+      // 星系弹窗交互
       document.getElementById('starDashboard').addEventListener('click', showGalaxy);
       document.getElementById('closeGalaxy').addEventListener('click', hideGalaxy);
       document.getElementById('galaxyModal').addEventListener('click', (e) => {
         if (e.target === document.getElementById('galaxyModal')) hideGalaxy();
       });
 
+      // 反馈弹窗交互
       const feedbackTrigger = document.getElementById('feedbackTrigger');
       const feedbackModal = document.getElementById('feedbackModal');
       const feedbackOverlay = document.getElementById('feedbackOverlay');
@@ -904,8 +892,32 @@
         feedbackOverlay.classList.remove('active');
       });
 
-      loadStars();
+      // 二维码放大功能
+      window.openQrZoom = function(src) {
+        document.getElementById('qrZoomImg').src = src;
+        document.getElementById('qrZoomOverlay').style.display = 'flex';
+      };
+
+      window.closeQrZoom = function() {
+        document.getElementById('qrZoomOverlay').style.display = 'none';
+      };
+
+      // 初始化：加载数据并恢复背景星星
+      loadAllData();
       updateStarCounter();
+
+      const bgContainer = document.getElementById('bgStarsContainer');
+      bgStarsData.forEach(starData => {
+        const starDiv = document.createElement('div');
+        starDiv.className = 'bg-star';
+        starDiv.innerHTML = starData.svg;
+        starDiv.style.left = starData.x + 'px';
+        starDiv.style.top = starData.y + 'px';
+        starDiv.style.width = (48 * starData.scale) + 'px';
+        starDiv.style.height = (48 * starData.scale) + 'px';
+        starDiv.style.transform = `rotate(${starData.rotation}deg)`;
+        bgContainer.appendChild(starDiv);
+      });
     })();
   </script>
 </body>
