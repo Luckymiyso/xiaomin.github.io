@@ -37,7 +37,7 @@
     .container{position:relative;z-index:2;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:24px}
     .title{text-align:center;margin-bottom:10px;line-height:1.2}
     .title-main{display:block;font-size:2.4rem;font-weight:400;color:#ffd966;letter-spacing:8px}
-    .title-sub{display:block;font-size:0.8rem;font-weight:300;color:#8888aa;letter-spacing:4px;margin-top:2px}
+    .title-sub{display:block;font-size:1.0rem;font-weight:300;color:#8888aa;letter-spacing:4px;margin-top:2px}
     .black-hole-wrapper{position:relative;width:180px;height:180px}
     .black-hole{
       position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -275,11 +275,11 @@
     <img class="qr-code" id="qrImage" src="Min.png" alt="关注小Min">
     <div class="hint">
       <span class="warm">点击放大 | 长按识别二维码</span><br>
-      关注小红书，看小困日常<br>
-      想聊更多？私信我随时都在
+      关注小红书，看Min日常<br>
+      
     </div>
     <div class="social-row">
-      <span>📕 小Min（低电量）</span>
+      <span>希望你天天开心！>‿❛</span>
     </div>
   </div>
   
@@ -613,108 +613,127 @@
       const textInput = document.getElementById('textInput');
       const blackHole = document.getElementById('blackHole');
       const blackHoleWrapper = document.getElementById('blackHoleWrapper');
-      function triggerBlackHole() {
+     function triggerBlackHole() {
         const text = textInput.value.trim();
         if (!text) { showToast('写点什么再丢进去吧'); vibrate(30); return; }
-        playStarChime();
+        textInput.blur();
+        window.scrollTo(0, 0);
+        document.body.style.height = '100vh';
         throwBtn.disabled = true;
-        vibrate([30,50,30]);
-        const textRect = textInput.getBoundingClientRect();
-        const holeRect = blackHoleWrapper.getBoundingClientRect();
-        const centerX = holeRect.left + holeRect.width/2;
-        const centerY = holeRect.top + holeRect.height/2;
-        const chars = text.split('');
-        chars.forEach((char, index) => {
-          const span = document.createElement('span');
-          span.textContent = char;
-          span.style.position = 'fixed';
-          span.style.left = (textRect.left + Math.random()*textRect.width) + 'px';
-          span.style.top = (textRect.top + Math.random()*textRect.height) + 'px';
-          span.style.color = '#ddd'; span.style.fontSize = '1.2rem'; span.style.fontWeight = 'bold';
-          span.style.zIndex = '25'; span.style.pointerEvents = 'none';
-          span.style.transition = 'all 0.7s cubic-bezier(0.25,0.1,0.25,1)'; span.style.opacity = '1';
-          document.body.appendChild(span);
-          requestAnimationFrame(() => {
-            span.style.transform = `translate(${centerX - parseFloat(span.style.left)}px, ${centerY - parseFloat(span.style.top)}px) scale(0.2) rotate(${Math.random()*720}deg)`;
-            span.style.opacity = '0';
+        setTimeout(() => {
+          document.body.style.height = '';
+          playStarChime();
+          vibrate([30,50,30]);
+          const textRect = textInput.getBoundingClientRect();
+          const holeRect = blackHoleWrapper.getBoundingClientRect();
+          const centerX = holeRect.left + holeRect.width/2;
+          const centerY = holeRect.top + holeRect.height/2;
+          const chars = text.split('');
+          chars.forEach((char, index) => {
+            const span = document.createElement('span');
+            span.textContent = char;
+            span.style.position = 'fixed';
+            span.style.left = (textRect.left + Math.random()*textRect.width) + 'px';
+            span.style.top = (textRect.top + Math.random()*textRect.height) + 'px';
+            span.style.color = '#ddd'; span.style.fontSize = '1.2rem'; span.style.fontWeight = 'bold';
+            span.style.zIndex = '25'; span.style.pointerEvents = 'none';
+            span.style.transition = 'all 0.7s cubic-bezier(0.25,0.1,0.25,1)'; span.style.opacity = '1';
+            document.body.appendChild(span);
+            requestAnimationFrame(() => {
+              span.style.transform = `translate(${centerX - parseFloat(span.style.left)}px, ${centerY - parseFloat(span.style.top)}px) scale(0.2) rotate(${Math.random()*720}deg)`;
+              span.style.opacity = '0';
+            });
+            setTimeout(() => { span.remove(); }, 700 + index*10);
           });
-          setTimeout(() => { span.remove(); }, 700 + index*10);
-        });
-        textInput.value = '';
-        setTimeout(() => {
-          blackHole.style.transform = 'translate(-50%, -50%) scale(1.2)';
-          blackHole.style.boxShadow = '0 0 60px rgba(150,50,220,0.8), 0 0 100px rgba(0,0,0,0.9)';
-          vibrate(50);
-        }, 400);
-        setTimeout(() => {
-          try {
-            blackHole.style.transform = 'translate(-50%, -50%) scale(1)';
-            blackHole.style.boxShadow = '0 0 40px rgba(100,50,200,0.4), 0 0 80px rgba(0,0,0,0.9)';
-            const timestamp = Date.now();
-            const svgString = generateUniqueStarSVG(text, timestamp);
-            addStar({ svg: svgString, text: text.slice(0,200), time: timestamp });
-            const holeCenterX = holeRect.left + holeRect.width/2;
-            const holeCenterY = holeRect.top + holeRect.height/2;
-            triggerScatterEffect(holeCenterX, holeCenterY);
-            createBackgroundStar();
-          } catch(e) {
-            console.error('星星创建出错:', e);
-showToast('出错: ' + e.message);
-          } finally {
-            throwBtn.disabled = false;
-          }
-        }, 800);
+          textInput.value = '';
+          setTimeout(() => {
+            blackHole.style.transform = 'translate(-50%, -50%) scale(1.2)';
+            blackHole.style.boxShadow = '0 0 60px rgba(150,50,220,0.8), 0 0 100px rgba(0,0,0,0.9)';
+            vibrate(50);
+          }, 400);
+          setTimeout(() => {
+            try {
+              blackHole.style.transform = 'translate(-50%, -50%) scale(1)';
+              blackHole.style.boxShadow = '0 0 40px rgba(100,50,200,0.4), 0 0 80px rgba(0,0,0,0.9)';
+              const timestamp = Date.now();
+              const svgString = generateUniqueStarSVG(text, timestamp);
+              addStar({ svg: svgString, text: text.slice(0,200), time: timestamp });
+              const holeCenterX = holeRect.left + holeRect.width/2;
+              const holeCenterY = holeRect.top + holeRect.height/2;
+              triggerScatterEffect(holeCenterX, holeCenterY);
+              createBackgroundStar();
+            } catch(e) {
+              console.error('星星创建出错:', e);
+              showToast('出错: ' + e.message);
+            } finally {
+              throwBtn.disabled = false;
+            }
+          }, 800);
+        }, 300);
       }
       throwBtn.addEventListener('click', triggerBlackHole);
       textInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); triggerBlackHole(); }
       });
       // ========== 语音 ==========
-      const voiceBtn = document.getElementById('voiceBtn');
-      let recognition = null, isListening = false;
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (SpeechRecognition) {
-        recognition = new SpeechRecognition();
-        recognition.lang = 'zh-CN'; recognition.interimResults = false; recognition.maxAlternatives = 1;
-        recognition.onresult = (event) => { textInput.value += event.results[0][0].transcript; stopListening(); };
-        recognition.onerror = () => { stopListening(); showToast('语音识别失败'); };
-        recognition.onend = () => { stopListening(); };
+const voiceBtn = document.getElementById('voiceBtn');
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+if (SpeechRecognition) {
+  let recognition = null;
+  let isListening = false;
+  try {
+    recognition = new SpeechRecognition();
+    recognition.lang = 'zh-CN';
+    recognition.interimResults = false;
+    recognition.maxAlternatives = 1;
+    recognition.onresult = (event) => {
+      textInput.value += event.results[0][0].transcript;
+      stopListening();
+    };
+    recognition.onerror = (e) => {
+      stopListening();
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        showToast('请允许麦克风权限，或用键盘🎤输入');
       } else {
-        voiceBtn.style.display = 'none';
+        showToast('语音不可用，请用键盘上的🎤按钮');
       }
-      function startListening() {
-        if (!recognition) return;
-        try { recognition.start(); isListening = true; voiceBtn.classList.add('listening'); voiceBtn.textContent = '🔴'; vibrate(20); showToast('小困在听...'); } catch(e){}
-      }
-      function stopListening() { if (recognition && isListening) recognition.stop(); isListening = false; voiceBtn.classList.remove('listening'); voiceBtn.textContent = '🎤'; }
-      voiceBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startListening(); });
-      voiceBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopListening(); });
-      voiceBtn.addEventListener('pointerleave', () => { if(isListening) stopListening(); });
-      voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
-      voiceBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
-      // ========== 弹窗交互 ==========
-      document.getElementById('starDashboard').addEventListener('click', showGalaxy);
-      document.getElementById('closeGalaxy').addEventListener('click', hideGalaxy);
-      document.getElementById('galaxyModal').addEventListener('click', (e) => {
-        if(e.target === document.getElementById('galaxyModal')) hideGalaxy();
-      });
-      document.getElementById('closeDetailBtn').addEventListener('click', closeStarDetail);
-      document.getElementById('deleteStarBtn').addEventListener('click', handleDeleteStar);
-      document.getElementById('starDetailModal').addEventListener('click', (e) => {
-        if(e.target === document.getElementById('starDetailModal')) closeStarDetail();
-      });
-      // ========== 反馈弹窗 ==========
-      const feedbackTrigger = document.getElementById('feedbackTrigger');
-      const feedbackModal = document.getElementById('feedbackModal');
-      const feedbackOverlay = document.getElementById('feedbackOverlay');
-      feedbackTrigger.addEventListener('click', () => {
-        const isOpen = feedbackModal.classList.contains('open');
-        if(isOpen){ feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active'); }
-        else { feedbackModal.classList.add('open'); feedbackOverlay.classList.add('active'); }
-      });
-      feedbackOverlay.addEventListener('click', () => {
-        feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active');
-      });
+    };
+    recognition.onend = () => { stopListening(); };
+  } catch(e) {
+    recognition = null;
+  }
+  function startListening() {
+    if (!recognition) { showToast('请用键盘上的🎤按钮语音输入'); return; }
+    try {
+      recognition.start();
+      isListening = true;
+      voiceBtn.classList.add('listening');
+      voiceBtn.textContent = '🔴';
+      vibrate(20);
+      showToast('小困在听...');
+    } catch(e) {
+      showToast('请用键盘上的🎤按钮语音输入');
+    }
+  }
+  function stopListening() {
+    if (recognition && isListening) try { recognition.stop(); } catch(e) {}
+    isListening = false;
+    voiceBtn.classList.remove('listening');
+    voiceBtn.textContent = '🎤';
+  }
+  voiceBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startListening(); });
+  voiceBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopListening(); });
+  voiceBtn.addEventListener('pointerleave', () => { if(isListening) stopListening(); });
+  voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
+  voiceBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
+} else {
+  // 不支持语音识别，改成键盘麦克风提示
+  voiceBtn.textContent = '🎙';
+  voiceBtn.title = '点击提示语音输入方法';
+  voiceBtn.addEventListener('click', () => {
+    showToast('点击输入框后，按键盘上的🎤按钮语音输入');
+  });
+}
       // ========== 图片灯箱 ==========
       const qrImage = document.getElementById('qrImage');
       const lightbox = document.getElementById('imgLightbox');
