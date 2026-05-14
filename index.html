@@ -83,12 +83,12 @@
     .btn.primary:active{background:rgba(200,160,255,0.35)}
     .btn:disabled{opacity:0.4;pointer-events:none}
     .voice-btn{
-      background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);
-      border-radius:50%;width:44px;height:44px;display:flex;align-items:center;
-      justify-content:center;cursor:pointer;flex:0 0 auto;font-size:1.3rem;
-    }
-    .voice-btn.listening{background:rgba(255,80,80,0.3);border-color:#ff5555;animation:pulse 1s infinite}
-    @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(255,80,80,0.5)}70%{box-shadow:0 0 0 15px rgba(255,80,80,0)}100%{box-shadow:0 0 0 0 rgba(255,80,80,0)}}
+  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);
+  border-radius:50%;width:44px;height:44px;display:flex;align-items:center;
+  justify-content:center;cursor:pointer;flex:0 0 auto;font-size:1.3rem;
+}
+.voice-btn:active{transform:scale(0.94)}
+    
     .top-right-area{position:fixed;top:20px;right:20px;z-index:20;display:flex;gap:10px;align-items:center}
     .star-dashboard{
       background:rgba(15,15,25,0.8);backdrop-filter:blur(10px);border-radius:30px;
@@ -231,7 +231,7 @@
       <textarea id="textInput" placeholder="把烦恼丢进去，吐出一颗星星…" maxlength="500"></textarea>
       <div class="button-row">
         <button class="btn primary" id="throwBtn">丢进黑洞</button>
-        <button class="voice-btn" id="voiceBtn" title="按住说话">🎤</button>
+        <button class="voice-btn" id="voiceHintBtn" title="语音输入提示">🎙</button>
       </div>
     </div>
     <div class="hint-text">每吐槽一次，夜空里就多一颗星</div>
@@ -675,65 +675,33 @@
       textInput.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); triggerBlackHole(); }
       });
-      // ========== 语音 ==========
-const voiceBtn = document.getElementById('voiceBtn');
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-if (SpeechRecognition) {
-  let recognition = null;
-  let isListening = false;
-  try {
-    recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-    recognition.onresult = (event) => {
-      textInput.value += event.results[0][0].transcript;
-      stopListening();
-    };
-    recognition.onerror = (e) => {
-      stopListening();
-      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
-        showToast('请允许麦克风权限，或用键盘🎤输入');
-      } else {
-        showToast('语音不可用，请用键盘上的🎤按钮');
-      }
-    };
-    recognition.onend = () => { stopListening(); };
-  } catch(e) {
-    recognition = null;
-  }
-  function startListening() {
-    if (!recognition) { showToast('请用键盘上的🎤按钮语音输入'); return; }
-    try {
-      recognition.start();
-      isListening = true;
-      voiceBtn.classList.add('listening');
-      voiceBtn.textContent = '🔴';
-      vibrate(20);
-      showToast('小困在听...');
-    } catch(e) {
-      showToast('请用键盘上的🎤按钮语音输入');
-    }
-  }
-  function stopListening() {
-    if (recognition && isListening) try { recognition.stop(); } catch(e) {}
-    isListening = false;
-    voiceBtn.classList.remove('listening');
-    voiceBtn.textContent = '🎤';
-  }
-  voiceBtn.addEventListener('pointerdown', (e) => { e.preventDefault(); startListening(); });
-  voiceBtn.addEventListener('pointerup', (e) => { e.preventDefault(); stopListening(); });
-  voiceBtn.addEventListener('pointerleave', () => { if(isListening) stopListening(); });
-  voiceBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startListening(); });
-  voiceBtn.addEventListener('touchend', (e) => { e.preventDefault(); stopListening(); });
-} else {
-  // 不支持语音识别，改成键盘麦克风提示
-  voiceBtn.textContent = '🎙';
-  voiceBtn.title = '点击提示语音输入方法';
-  voiceBtn.addEventListener('click', () => {
-    showToast('点击输入框后，按键盘上的🎤按钮语音输入');
-  });
-}
+      // ========== 语音提示 ==========
+document.getElementById('voiceHintBtn').addEventListener('click', () => {
+  showToast('点击输入框 → 按键盘上的🎤即可语音输入');
+});
+      // ========== 弹窗交互 ==========
+      document.getElementById('starDashboard').addEventListener('click', showGalaxy);
+      document.getElementById('closeGalaxy').addEventListener('click', hideGalaxy);
+      document.getElementById('galaxyModal').addEventListener('click', (e) => {
+        if(e.target === document.getElementById('galaxyModal')) hideGalaxy();
+      });
+      document.getElementById('closeDetailBtn').addEventListener('click', closeStarDetail);
+      document.getElementById('deleteStarBtn').addEventListener('click', handleDeleteStar);
+      document.getElementById('starDetailModal').addEventListener('click', (e) => {
+        if(e.target === document.getElementById('starDetailModal')) closeStarDetail();
+      });
+      // ========== 反馈弹窗 ==========
+      const feedbackTrigger = document.getElementById('feedbackTrigger');
+      const feedbackModal = document.getElementById('feedbackModal');
+      const feedbackOverlay = document.getElementById('feedbackOverlay');
+      feedbackTrigger.addEventListener('click', () => {
+        const isOpen = feedbackModal.classList.contains('open');
+        if(isOpen){ feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active'); }
+        else { feedbackModal.classList.add('open'); feedbackOverlay.classList.add('active'); }
+      });
+      feedbackOverlay.addEventListener('click', () => {
+        feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active');
+      });
       // ========== 图片灯箱 ==========
       const qrImage = document.getElementById('qrImage');
       const lightbox = document.getElementById('imgLightbox');
