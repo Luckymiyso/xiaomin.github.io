@@ -274,11 +274,10 @@
     <img class="qr-code" id="qrImage" src="Min.png" alt="关注小Min">
     <div class="hint">
       <span class="warm">点击放大 | 长按识别二维码</span><br>
-      关注小红书，看小Min日常<br>
-      
+      关注小红书，看小困日常<br>
     </div>
     <div class="social-row">
-      <span>希望你天天开心！>‿❛</span>
+      <span>希望你天天开心！&gt;‿❛</span>
     </div>
   </div>
   
@@ -368,7 +367,7 @@
       }
       // ========== 数据存储（修复版） ==========
       let stars = [];
-      let bgStarsData = [];
+      let bgStarCount = 0;
       let currentViewingIndex = -1;
       const STORAGE_KEY = 'pengpeng_stars';
       const BG_STARS_KEY = 'pengpeng_bg_stars';
@@ -402,18 +401,15 @@
         updateStarCounter();
       }
       function updateStarCounter() { document.getElementById('starCount').textContent = stars.length; }
-      // ========== 背景星星存储 ==========
+      // ========== 背景星星存储（只存数量） ==========
       function loadBgStars() {
         try {
           const stored = localStorage.getItem(BG_STARS_KEY);
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            bgStarsData = Array.isArray(parsed) ? parsed : [];
-          }
-        } catch(e) { bgStarsData = []; }
+          if (stored) bgStarCount = parseInt(stored) || 0;
+        } catch(e) { bgStarCount = 0; }
       }
       function saveBgStars() {
-        try { localStorage.setItem(BG_STARS_KEY, JSON.stringify(bgStarsData)); } catch(e) {}
+        try { localStorage.setItem(BG_STARS_KEY, String(bgStarCount)); } catch(e) {}
       }
       // ========== 生成独特星星SVG ==========
       function generateUniqueStarSVG(text, timestamp) {
@@ -478,24 +474,37 @@
         starDiv.appendChild(svg);
         starDiv.style.left = posX + 'px'; starDiv.style.top = posY + 'px'; starDiv.style.width = size + 'px'; starDiv.style.height = size + 'px';
         container.appendChild(starDiv);
-        bgStarsData.push({ posX, posY, size, color, glowColor, pointsStr: points.join(' ') });
+        bgStarCount++;
         saveBgStars();
       }
       function restoreBgStars() {
-        const container = document.getElementById('bgStarsContainer');
-        bgStarsData.forEach(data => {
+        for (let i = 0; i < bgStarCount; i++) {
+          const container = document.getElementById('bgStarsContainer');
           const starDiv = document.createElement('div');
           starDiv.className = 'bg-star';
-          const uniqueId = 'bg' + Date.now() + Math.random();
+          const maxX = window.innerWidth - 40, maxY = window.innerHeight - 40;
+          let posX = Math.random() * maxX, posY = Math.random() * maxY;
+          if (posX > window.innerWidth - 120 && posY < 80) posY = 80 + Math.random() * (maxY - 80);
+          const size = 14 + Math.random() * 22;
+          const hue = Math.floor(Math.random() * 360);
+          const color = `hsl(${hue}, 80%, 75%)`, glowColor = `hsl(${hue}, 90%, 85%)`;
+          const center = size / 2, spikeLen = size * 0.45, innerLen = size * 0.15;
+          const points = [];
+          for (let j = 0; j < 4; j++) {
+            const angleOut = (j * 90) * Math.PI / 180, angleIn = ((j * 90) + 45) * Math.PI / 180;
+            points.push(`${center + spikeLen * Math.cos(angleOut)},${center + spikeLen * Math.sin(angleOut)}`);
+            points.push(`${center + innerLen * Math.cos(angleIn)},${center + innerLen * Math.sin(angleIn)}`);
+          }
+          const uniqueId = 'bgr' + Date.now() + i + Math.random();
           const svgNS = "http://www.w3.org/2000/svg";
           const svg = document.createElementNS(svgNS, "svg");
-          svg.setAttribute("width", data.size); svg.setAttribute("height", data.size); svg.setAttribute("viewBox", `0 0 ${data.size} ${data.size}`);
-          svg.innerHTML = `<defs><filter id="glow_${uniqueId}"><feGaussianBlur stdDeviation="1.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points="${data.pointsStr}" fill="${data.color}" stroke="${data.glowColor}" stroke-width="0.5" filter="url(#glow_${uniqueId})"/>`;
+          svg.setAttribute("width", size); svg.setAttribute("height", size); svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+          svg.innerHTML = `<defs><filter id="glow_${uniqueId}"><feGaussianBlur stdDeviation="1.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points="${points.join(' ')}" fill="${color}" stroke="${glowColor}" stroke-width="0.5" filter="url(#glow_${uniqueId})"/>`;
           starDiv.appendChild(svg);
-          starDiv.style.left = data.posX + 'px'; starDiv.style.top = data.posY + 'px';
-          starDiv.style.width = data.size + 'px'; starDiv.style.height = data.size + 'px';
+          starDiv.style.left = posX + 'px'; starDiv.style.top = posY + 'px';
+          starDiv.style.width = size + 'px'; starDiv.style.height = size + 'px';
           container.appendChild(starDiv);
-        });
+        }
       }
       // ========== 批量删除 ==========
       let batchMode = false;
@@ -508,7 +517,7 @@
         const content = document.getElementById('galaxyContent');
         content.innerHTML = '';
         if (stars.length === 0) {
-          content.innerHTML = '<div class="empty-hint">还没有星星<br>去丢一些烦恼吧</div>';
+          content.innerHTML = '<div class="empty-hint">还没有星星<br>去记一些小事吧</div>';
           return;
         }
         stars.forEach((star, index) => {
@@ -654,10 +663,8 @@
         if (!text) { showToast('写点什么再丢进去吧'); vibrate(30); return; }
         textInput.blur();
         window.scrollTo(0, 0);
-        
         throwBtn.disabled = true;
         setTimeout(() => {
-          
           playStarChime();
           vibrate([30,50,30]);
           const textRect = textInput.getBoundingClientRect();
