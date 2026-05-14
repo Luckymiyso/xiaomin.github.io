@@ -37,7 +37,7 @@
     .container{position:relative;z-index:2;width:100%;max-width:400px;display:flex;flex-direction:column;align-items:center;gap:24px}
     .title{text-align:center;margin-bottom:10px;line-height:1.2}
     .title-main{display:block;font-size:2.4rem;font-weight:400;color:#ffd966;letter-spacing:8px}
-    .title-sub{display:block;font-size:1.0rem;font-weight:300;color:#8888aa;letter-spacing:4px;margin-top:2px}
+    .title-sub{display:block;font-size:1.1rem;font-weight:300;color:#8888aa;letter-spacing:4px;margin-top:2px}
     .black-hole-wrapper{position:relative;width:180px;height:180px}
     .black-hole{
       position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
@@ -83,13 +83,18 @@
     .btn.primary:active{background:rgba(200,160,255,0.35)}
     .btn:disabled{opacity:0.4;pointer-events:none}
     .voice-btn{
-  background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);
-  border-radius:50%;width:44px;height:44px;display:flex;align-items:center;
-  justify-content:center;cursor:pointer;flex:0 0 auto;font-size:1.3rem;
-}
-.voice-btn:active{transform:scale(0.94)}
-    
+      background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);
+      border-radius:50%;width:44px;height:44px;display:flex;align-items:center;
+      justify-content:center;cursor:pointer;flex:0 0 auto;font-size:1.3rem;
+    }
+    .voice-btn:active{transform:scale(0.94)}
     .top-right-area{position:fixed;top:20px;right:20px;z-index:20;display:flex;gap:10px;align-items:center}
+    .sound-toggle{
+      background:rgba(15,15,25,0.8);backdrop-filter:blur(10px);border-radius:50%;
+      width:38px;height:38px;display:flex;align-items:center;justify-content:center;
+      cursor:pointer;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:1.2rem;transition:all 0.3s;
+    }
+    .sound-toggle:active{background:rgba(60,60,80,0.7)}
     .star-dashboard{
       background:rgba(15,15,25,0.8);backdrop-filter:blur(10px);border-radius:30px;
       padding:8px 16px;display:flex;align-items:center;gap:10px;
@@ -100,12 +105,6 @@
     .star-emoji{font-size:1.4rem;animation:starGlow 2s infinite alternate}
     @keyframes starGlow{0%{text-shadow:0 0 5px #ffd700}100%{text-shadow:0 0 20px #ffaa00}}
     .star-count{font-weight:600;font-size:1.1rem;color:#ffd966}
-    .sound-toggle{
-      background:rgba(15,15,25,0.8);backdrop-filter:blur(10px);border-radius:50%;
-      width:38px;height:38px;display:flex;align-items:center;justify-content:center;
-      cursor:pointer;border:1px solid rgba(255,255,255,0.15);color:#aaa;font-size:1.2rem;transition:all 0.3s;
-    }
-    .sound-toggle:active{background:rgba(60,60,80,0.7)}
     .galaxy-modal{
       position:fixed;top:0;left:0;width:100%;height:100%;
       background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:100;
@@ -228,13 +227,13 @@
       <div class="black-hole" id="blackHole"></div>
     </div>
     <div class="input-area">
-      <textarea id="textInput" placeholder="把烦恼丢进去，吐出一颗星星…" maxlength="500"></textarea>
+      <textarea id="textInput" placeholder="写下今天的小事，变成一颗星…" maxlength="500"></textarea>
       <div class="button-row">
-        <button class="btn primary" id="throwBtn">丢进黑洞</button>
+        <button class="btn primary" id="throwBtn">咻~</button>
         <button class="voice-btn" id="voiceHintBtn" title="语音输入提示">🎙</button>
       </div>
     </div>
-    <div class="hint-text">每吐槽一次，夜空里就多一颗星</div>
+    <div class="hint-text">生活里的小事，都是发光的星星</div>
   </div>
   
   <div class="top-right-area">
@@ -275,7 +274,7 @@
     <img class="qr-code" id="qrImage" src="Min.png" alt="关注小Min">
     <div class="hint">
       <span class="warm">点击放大 | 长按识别二维码</span><br>
-      关注小红书，看Min日常<br>
+      关注小红书，看小Min日常<br>
       
     </div>
     <div class="social-row">
@@ -369,22 +368,23 @@
       }
       // ========== 数据存储（修复版） ==========
       let stars = [];
+      let bgStarsData = [];
       let currentViewingIndex = -1;
       const STORAGE_KEY = 'pengpeng_stars';
+      const BG_STARS_KEY = 'pengpeng_bg_stars';
       function loadStars() {
-  try {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      const parsed = JSON.parse(stored);
-      stars = Array.isArray(parsed) ? parsed : [];
-    }
-  } catch (e) { stars = []; }
-}
+        try {
+          const stored = localStorage.getItem(STORAGE_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            stars = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch (e) { stars = []; }
+      }
       function saveStars() {
         try {
           localStorage.setItem(STORAGE_KEY, JSON.stringify(stars));
         } catch(e) {
-          // localStorage满了，自动清理最旧的星星直到能存下
           for (let i = 0; i < stars.length; i++) {
             stars.shift();
             try {
@@ -395,8 +395,26 @@
           }
         }
       }
-      function addStar(starData) { if (!Array.isArray(stars)) stars = []; stars.push(starData); saveStars(); updateStarCounter(); }
+      function addStar(starData) {
+        if (!Array.isArray(stars)) stars = [];
+        stars.push(starData);
+        saveStars();
+        updateStarCounter();
+      }
       function updateStarCounter() { document.getElementById('starCount').textContent = stars.length; }
+      // ========== 背景星星存储 ==========
+      function loadBgStars() {
+        try {
+          const stored = localStorage.getItem(BG_STARS_KEY);
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            bgStarsData = Array.isArray(parsed) ? parsed : [];
+          }
+        } catch(e) { bgStarsData = []; }
+      }
+      function saveBgStars() {
+        try { localStorage.setItem(BG_STARS_KEY, JSON.stringify(bgStarsData)); } catch(e) {}
+      }
       // ========== 生成独特星星SVG ==========
       function generateUniqueStarSVG(text, timestamp) {
         let hash = 0;
@@ -460,6 +478,24 @@
         starDiv.appendChild(svg);
         starDiv.style.left = posX + 'px'; starDiv.style.top = posY + 'px'; starDiv.style.width = size + 'px'; starDiv.style.height = size + 'px';
         container.appendChild(starDiv);
+        bgStarsData.push({ posX, posY, size, color, glowColor, pointsStr: points.join(' ') });
+        saveBgStars();
+      }
+      function restoreBgStars() {
+        const container = document.getElementById('bgStarsContainer');
+        bgStarsData.forEach(data => {
+          const starDiv = document.createElement('div');
+          starDiv.className = 'bg-star';
+          const uniqueId = 'bg' + Date.now() + Math.random();
+          const svgNS = "http://www.w3.org/2000/svg";
+          const svg = document.createElementNS(svgNS, "svg");
+          svg.setAttribute("width", data.size); svg.setAttribute("height", data.size); svg.setAttribute("viewBox", `0 0 ${data.size} ${data.size}`);
+          svg.innerHTML = `<defs><filter id="glow_${uniqueId}"><feGaussianBlur stdDeviation="1.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points="${data.pointsStr}" fill="${data.color}" stroke="${data.glowColor}" stroke-width="0.5" filter="url(#glow_${uniqueId})"/>`;
+          starDiv.appendChild(svg);
+          starDiv.style.left = data.posX + 'px'; starDiv.style.top = data.posY + 'px';
+          starDiv.style.width = data.size + 'px'; starDiv.style.height = data.size + 'px';
+          container.appendChild(starDiv);
+        });
       }
       // ========== 批量删除 ==========
       let batchMode = false;
@@ -613,15 +649,15 @@
       const textInput = document.getElementById('textInput');
       const blackHole = document.getElementById('blackHole');
       const blackHoleWrapper = document.getElementById('blackHoleWrapper');
-     function triggerBlackHole() {
+      function triggerBlackHole() {
         const text = textInput.value.trim();
         if (!text) { showToast('写点什么再丢进去吧'); vibrate(30); return; }
         textInput.blur();
         window.scrollTo(0, 0);
-        document.body.style.height = '100vh';
+        
         throwBtn.disabled = true;
         setTimeout(() => {
-          document.body.style.height = '';
+          
           playStarChime();
           vibrate([30,50,30]);
           const textRect = textInput.getBoundingClientRect();
@@ -676,9 +712,9 @@
         if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); triggerBlackHole(); }
       });
       // ========== 语音提示 ==========
-document.getElementById('voiceHintBtn').addEventListener('click', () => {
-  showToast('点击输入框 → 按键盘上的🎤即可语音输入');
-});
+      document.getElementById('voiceHintBtn').addEventListener('click', () => {
+        showToast('点击输入框 → 按键盘上的🎤即可语音输入');
+      });
       // ========== 弹窗交互 ==========
       document.getElementById('starDashboard').addEventListener('click', showGalaxy);
       document.getElementById('closeGalaxy').addEventListener('click', hideGalaxy);
@@ -710,7 +746,9 @@ document.getElementById('voiceHintBtn').addEventListener('click', () => {
       lightbox.addEventListener('click', () => { lightbox.classList.remove('open'); });
       // ========== 启动 ==========
       loadStars();
+      loadBgStars();
       updateStarCounter();
+      restoreBgStars();
     })();
   </script>
 </body>
