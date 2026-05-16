@@ -22,6 +22,12 @@
       position:absolute;
       animation: starPulse 2s infinite ease-in-out, starFloat 8s infinite ease-in-out;
       will-change:transform;
+      transition: transform 0.6s ease-in, opacity 0.6s ease-in;
+    }
+    .bg-star.vanishing{
+      transform: scale(0) rotate(360deg) !important;
+      opacity: 0 !important;
+      animation: none !important;
     }
     @keyframes starPulse{0%{transform:scale(1);opacity:0.7}50%{transform:scale(1.4);opacity:1}100%{transform:scale(1);opacity:0.7}}
     @keyframes starFloat{0%{transform:translateY(0)}50%{transform:translateY(-20px)}100%{transform:translateY(0)}}
@@ -105,6 +111,13 @@
     .star-emoji{font-size:1.4rem;animation:starGlow 2s infinite alternate}
     @keyframes starGlow{0%{text-shadow:0 0 5px #ffd700}100%{text-shadow:0 0 20px #ffaa00}}
     .star-count{font-weight:600;font-size:1.1rem;color:#ffd966}
+    .clear-sky-btn{
+      background:rgba(15,15,25,0.8);backdrop-filter:blur(10px);border-radius:30px;
+      padding:8px 14px;display:flex;align-items:center;gap:6px;
+      border:1px solid rgba(255,100,100,0.3);box-shadow:0 0 15px rgba(255,80,80,0.1);
+      cursor:pointer;transition:all 0.3s;font-size:0.85rem;color:#e88;white-space:nowrap;
+    }
+    .clear-sky-btn:active{background:rgba(255,80,80,0.2);transform:scale(0.96)}
     .galaxy-modal{
       position:fixed;top:0;left:0;width:100%;height:100%;
       background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);z-index:100;
@@ -210,11 +223,13 @@
       max-width:85%;max-height:80%;border-radius:12px;
       box-shadow:0 0 40px rgba(0,0,0,0.8);background:#fff;padding:8px;
     }
+    #fireworksCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:150;pointer-events:none}
   </style>
 </head>
 <body>
   <div class="bg-particles" id="particles"></div>
   <div class="bg-stars-container" id="bgStarsContainer"></div>
+  <canvas id="fireworksCanvas"></canvas>
   
   <div class="container">
     <div class="title">
@@ -242,6 +257,7 @@
       <span class="star-emoji">⭐</span>
       <span class="star-count" id="starCount">0</span>
     </div>
+    <div class="clear-sky-btn" id="clearSkyBtn">🎆 清空星空</div>
   </div>
   
   <div class="galaxy-modal" id="galaxyModal">
@@ -351,6 +367,48 @@
           else startSound();
         } catch (e) {}
       }
+      // ========== 烟花爆炸音效 ==========
+      function playFireworkBoom() {
+        if (!soundEnabled) return;
+        try {
+          const AudioCtxClass = window.AudioContext || window.webkitAudioContext;
+          if (!AudioCtxClass) return;
+          const audioCtx = new AudioCtxClass();
+          const play = () => {
+            try {
+              const now = audioCtx.currentTime;
+              // 低频嘭声
+              const osc = audioCtx.createOscillator();
+              const gain = audioCtx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(150, now);
+              osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
+              gain.gain.setValueAtTime(0.3, now);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
+              osc.connect(gain);
+              gain.connect(audioCtx.destination);
+              osc.start(now);
+              osc.stop(now + 0.4);
+              // 噪声爆炸
+              const bufSize = Math.floor(audioCtx.sampleRate * 0.3);
+              const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+              const d = buf.getChannelData(0);
+              for (let i = 0; i < bufSize; i++) d[i] = (Math.random() * 2 - 1);
+              const src = audioCtx.createBufferSource();
+              src.buffer = buf;
+              const ng = audioCtx.createGain();
+              ng.gain.setValueAtTime(0.2, now);
+              ng.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+              src.connect(ng);
+              ng.connect(audioCtx.destination);
+              src.start(now);
+              src.stop(now + 0.3);
+            } catch(e) {}
+          };
+          if (audioCtx.state === 'suspended') audioCtx.resume().then(play);
+          else play();
+        } catch(e) {}
+      }
       // ========== 背景粒子 ==========
       const particlesContainer = document.getElementById('particles');
       for (let i = 0; i < 60; i++) {
@@ -365,7 +423,7 @@
         particle.style.animationDuration = (Math.random() * 8 + 6) + 's';
         particlesContainer.appendChild(particle);
       }
-      // ========== 数据存储（修复版） ==========
+      // ========== 数据存储 ==========
       let stars = [];
       let bgStarCount = 0;
       let currentViewingIndex = -1;
@@ -401,7 +459,7 @@
         updateStarCounter();
       }
       function updateStarCounter() { document.getElementById('starCount').textContent = stars.length; }
-      // ========== 背景星星存储（只存数量） ==========
+      // ========== 背景星星存储 ==========
       function loadBgStars() {
         try {
           const stored = localStorage.getItem(BG_STARS_KEY);
@@ -505,6 +563,150 @@
           starDiv.style.width = size + 'px'; starDiv.style.height = size + 'px';
           container.appendChild(starDiv);
         }
+      }
+      // ========== 清空星空+烟花 ==========
+      let clearConfirmPending = false;
+      let clearConfirmTimer = null;
+      const clearSkyBtn = document.getElementById('clearSkyBtn');
+      clearSkyBtn.addEventListener('click', () => {
+        const container = document.getElementById('bgStarsContainer');
+        const bgStars = container.querySelectorAll('.bg-star');
+        if (bgStars.length === 0) {
+          showToast('星空已经是空的了');
+          return;
+        }
+        if (!clearConfirmPending) {
+          clearConfirmPending = true;
+          showToast('再按一次清空星空+放烟花🎆');
+          clearConfirmTimer = setTimeout(() => { clearConfirmPending = false; }, 2000);
+          return;
+        }
+        clearConfirmPending = false;
+        clearTimeout(clearConfirmTimer);
+        // 逐个消失
+        bgStars.forEach((star, i) => {
+          setTimeout(() => {
+            star.classList.add('vanishing');
+          }, i * 50);
+        });
+        // 等消失完后清空+放烟花
+        const vanishTime = bgStars.length * 50 + 700;
+        setTimeout(() => {
+          container.innerHTML = '';
+          bgStarCount = 0;
+          saveBgStars();
+          startFireworks();
+        }, vanishTime);
+      });
+      // ========== 烟花系统 ==========
+      function startFireworks() {
+        const canvas = document.getElementById('fireworksCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.display = 'block';
+        const fireworks = [];
+        const particles = [];
+        const rocketCount = 5 + Math.floor(Math.random() * 4); // 5-8发
+        let rocketsLaunched = 0;
+        let animId = null;
+        function launchRocket() {
+          if (rocketsLaunched >= rocketCount) return;
+          const x = canvas.width * 0.2 + Math.random() * canvas.width * 0.6;
+          const targetY = canvas.height * 0.15 + Math.random() * canvas.height * 0.35;
+          const hue = Math.floor(Math.random() * 360);
+          fireworks.push({
+            x: x,
+            y: canvas.height,
+            targetY: targetY,
+            hue: hue,
+            speed: 6 + Math.random() * 3,
+            trail: [],
+            alive: true
+          });
+          rocketsLaunched++;
+          if (rocketsLaunched < rocketCount) {
+            setTimeout(launchRocket, 300 + Math.random() * 400);
+          }
+        }
+        function explode(x, y, hue) {
+          const count = 40 + Math.floor(Math.random() * 30);
+          for (let i = 0; i < count; i++) {
+            const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
+            const speed = 2 + Math.random() * 5;
+            const hueVar = hue + Math.floor(Math.random() * 40 - 20);
+            particles.push({
+              x: x, y: y,
+              vx: Math.cos(angle) * speed,
+              vy: Math.sin(angle) * speed,
+              hue: hueVar,
+              alpha: 1,
+              decay: 0.012 + Math.random() * 0.015,
+              size: 2 + Math.random() * 2,
+              gravity: 0.04 + Math.random() * 0.03
+            });
+          }
+          playFireworkBoom();
+          vibrate(50);
+        }
+        function update() {
+          ctx.globalCompositeOperation = 'destination-out';
+          ctx.fillStyle = 'rgba(0,0,0,0.15)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.globalCompositeOperation = 'lighter';
+          // 更新烟花
+          for (let i = fireworks.length - 1; i >= 0; i--) {
+            const fw = fireworks[i];
+            fw.trail.push({ x: fw.x, y: fw.y });
+            if (fw.trail.length > 8) fw.trail.shift();
+            fw.y -= fw.speed;
+            fw.x += (Math.random() - 0.5) * 0.5;
+            // 画尾迹
+            for (let t = 0; t < fw.trail.length; t++) {
+              const alpha = (t / fw.trail.length) * 0.6;
+              ctx.beginPath();
+              ctx.arc(fw.trail[t].x, fw.trail[t].y, 2, 0, Math.PI * 2);
+              ctx.fillStyle = `hsla(${fw.hue}, 100%, 80%, ${alpha})`;
+              ctx.fill();
+            }
+            // 画火箭头
+            ctx.beginPath();
+            ctx.arc(fw.x, fw.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${fw.hue}, 100%, 90%)`;
+            ctx.fill();
+            if (fw.y <= fw.targetY) {
+              explode(fw.x, fw.y, fw.hue);
+              fireworks.splice(i, 1);
+            }
+          }
+          // 更新粒子
+          for (let i = particles.length - 1; i >= 0; i--) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            p.vy += p.gravity;
+            p.vx *= 0.99;
+            p.alpha -= p.decay;
+            if (p.alpha <= 0) {
+              particles.splice(i, 1);
+              continue;
+            }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${p.alpha})`;
+            ctx.fill();
+          }
+          // 判断是否全部结束
+          if (fireworks.length === 0 && particles.length === 0 && rocketsLaunched >= rocketCount) {
+            cancelAnimationFrame(animId);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none';
+            return;
+          }
+          animId = requestAnimationFrame(update);
+        }
+        launchRocket();
+        animId = requestAnimationFrame(update);
       }
       // ========== 批量删除 ==========
       let batchMode = false;
@@ -653,7 +855,7 @@
       // ========== 工具 ==========
       function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
       function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-      // ========== 黑洞核心（修复版） ==========
+      // ========== 黑洞核心 ==========
       const throwBtn = document.getElementById('throwBtn');
       const textInput = document.getElementById('textInput');
       const blackHole = document.getElementById('blackHole');
