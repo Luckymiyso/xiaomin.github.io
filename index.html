@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>碰碰星 · 你的随身情绪充电站</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
@@ -12,6 +15,48 @@
       font-family: -apple-system, sans-serif;padding:20px;overflow-x:hidden;color:#e0e0e0;
       -webkit-tap-highlight-color: transparent;user-select:none;position:relative;
     }
+    .landing-page{
+      position:fixed;top:0;left:0;width:100%;height:100%;z-index:500;
+      background:radial-gradient(ellipse at center, #0d0d1a 0%, #02020a 100%);
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+      gap:28px;padding:30px;text-align:center;
+    }
+    .landing-page.hidden{display:none}
+    .landing-stars{font-size:4rem;animation:landingFloat 3s ease-in-out infinite}
+    @keyframes landingFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+    .landing-title{font-size:2.2rem;color:#ffd966;letter-spacing:6px;font-weight:400}
+    .landing-subtitle{font-size:1rem;color:#8888aa;letter-spacing:3px;line-height:1.8}
+    .landing-preview{
+      width:220px;height:160px;border-radius:20px;overflow:hidden;
+      border:1px solid rgba(255,255,255,0.1);
+      background:rgba(20,20,35,0.6);backdrop-filter:blur(10px);
+      display:flex;align-items:center;justify-content:center;position:relative;
+    }
+    .landing-preview .preview-star{
+      position:absolute;animation:previewStarFloat 4s ease-in-out infinite;
+    }
+    @keyframes previewStarFloat{0%,100%{transform:translateY(0) scale(1);opacity:0.7}50%{transform:translateY(-10px) scale(1.2);opacity:1}}
+    .landing-qr{
+      width:160px;height:auto;border-radius:12px;background:#fff;padding:6px;
+      box-shadow:0 0 30px rgba(255,200,0,0.15);cursor:pointer;
+    }
+    .landing-contact{
+      background:rgba(20,20,35,0.7);backdrop-filter:blur(15px);
+      border-radius:20px;padding:20px 24px;
+      border:1px solid rgba(255,255,255,0.08);max-width:280px;width:100%;
+    }
+    .landing-contact-title{font-size:0.95rem;color:#ffd966;margin-bottom:12px;letter-spacing:2px}
+    .landing-contact-text{font-size:0.82rem;color:#999;line-height:1.8}
+    .landing-contact-text .highlight{color:#e8d5ff}
+    .landing-hint{font-size:0.7rem;color:#555;margin-top:-10px}
+    .landing-img-lightbox{
+      position:fixed;top:0;left:0;width:100%;height:100%;
+      background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);z-index:510;
+      display:flex;align-items:center;justify-content:center;
+      opacity:0;pointer-events:none;transition:opacity 0.25s;
+    }
+    .landing-img-lightbox.open{opacity:1;pointer-events:auto}
+    .landing-img-lightbox img{max-width:85%;max-height:80%;border-radius:12px;background:#fff;padding:8px}
     .bg-particles{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
     .particle{
       position:absolute;background:white;border-radius:50%;opacity:0.15;
@@ -219,14 +264,36 @@
       opacity:0;pointer-events:none;transition:opacity 0.25s;
     }
     .img-lightbox.open{opacity:1;pointer-events:auto}
-    .img-lightbox img{
-      max-width:85%;max-height:80%;border-radius:12px;
-      box-shadow:0 0 40px rgba(0,0,0,0.8);background:#fff;padding:8px;
-    }
+    .img-lightbox img{max-width:85%;max-height:80%;border-radius:12px;background:#fff;padding:8px}
     #fireworksCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:150;pointer-events:none}
   </style>
 </head>
 <body>
+  <div class="landing-page" id="landingPage">
+    <div class="landing-stars">🌌</div>
+    <div class="landing-title">碰碰星</div>
+    <div class="landing-subtitle">用NFC触碰，开启你的专属星空<br>记录生活里的小事，变成发光的星星</div>
+    <div class="landing-preview">
+      <div class="preview-star" style="left:20%;top:30%;font-size:1.6rem">⭐</div>
+      <div class="preview-star" style="left:55%;top:20%;font-size:1.2rem;animation-delay:0.5s">✨</div>
+      <div class="preview-star" style="left:70%;top:55%;font-size:1.4rem;animation-delay:1s">💫</div>
+      <div class="preview-star" style="left:35%;top:65%;font-size:1rem;animation-delay:1.5s">🌟</div>
+    </div>
+    <img class="landing-qr" id="landingQr" src="Min.png" alt="联系我" title="点击放大">
+    <div class="landing-contact">
+      <div class="landing-contact-title">💫 想要一个专属星空？</div>
+      <div class="landing-contact-text">
+        NFC礼物 · 定制你的星空<br>
+        <span class="highlight">扫码联系我</span>，为你写一颗星<br>
+        送朋友 · 送恋人 · 送自己
+      </div>
+    </div>
+    <div class="landing-hint">点击二维码可放大识别</div>
+  </div>
+  <div class="landing-img-lightbox" id="landingLightbox">
+    <img id="landingLightboxImg" src="" alt="二维码大图">
+  </div>
+
   <div class="bg-particles" id="particles"></div>
   <div class="bg-stars-container" id="bgStarsContainer"></div>
   <canvas id="fireworksCanvas"></canvas>
@@ -284,7 +351,7 @@
     </div>
   </div>
   
-  <div class="feedback-trigger" id="feedbackTrigger" title="有小困在听">✉</div>
+  <div class="feedback-trigger" id="feedbackTrigger" title="有小Min在听">✉</div>
   <div class="feedback-overlay" id="feedbackOverlay"></div>
   <div class="feedback-modal" id="feedbackModal">
     <img class="qr-code" id="qrImage" src="Min.png" alt="关注小Min">
@@ -305,7 +372,26 @@
   
   <script>
     (function() {
-      // ========== 声音开关 ==========
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get('s');
+      const landingPage = document.getElementById('landingPage');
+      
+      if (!sessionId) {
+        landingPage.classList.remove('hidden');
+        const landingQr = document.getElementById('landingQr');
+        const landingLightbox = document.getElementById('landingLightbox');
+        const landingLightboxImg = document.getElementById('landingLightboxImg');
+        landingQr.addEventListener('click', () => {
+          landingLightboxImg.src = landingQr.src;
+          landingLightbox.classList.add('open');
+        });
+        landingLightbox.addEventListener('click', () => {
+          landingLightbox.classList.remove('open');
+        });
+        return;
+      }
+      landingPage.classList.add('hidden');
+
       let soundEnabled = false;
       const soundToggle = document.getElementById('soundToggle');
       soundToggle.addEventListener('click', () => {
@@ -313,7 +399,6 @@
         soundToggle.textContent = soundEnabled ? '🔊' : '🔇';
         soundToggle.title = soundEnabled ? '声音已开启' : '声音已关闭';
       });
-      // ========== 音效 ==========
       function playStarChime() {
         if (!soundEnabled) return;
         try {
@@ -330,23 +415,18 @@
               oscLow.frequency.linearRampToValueAtTime(300, now + 0.4);
               gainLow.gain.setValueAtTime(0.2, now);
               gainLow.gain.linearRampToValueAtTime(0, now + 0.5);
-              oscLow.connect(gainLow);
-              gainLow.connect(audioCtx.destination);
-              oscLow.start(now);
-              oscLow.stop(now + 0.5);
+              oscLow.connect(gainLow); gainLow.connect(audioCtx.destination);
+              oscLow.start(now); oscLow.stop(now + 0.5);
               const notes = [1200, 1600, 2000, 2400, 1800, 1400];
               notes.forEach((freq, i) => {
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
-                osc.type = 'sine';
-                osc.frequency.value = freq;
+                osc.type = 'sine'; osc.frequency.value = freq;
                 const startTime = now + 0.35 + i * 0.04;
                 gain.gain.setValueAtTime(0.12, startTime);
                 gain.gain.exponentialRampToValueAtTime(0.001, startTime + 0.25);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(startTime);
-                osc.stop(startTime + 0.3);
+                osc.connect(gain); gain.connect(audioCtx.destination);
+                osc.start(startTime); osc.stop(startTime + 0.3);
               });
               const bufferSize = audioCtx.sampleRate * 0.6;
               const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -357,17 +437,14 @@
               const noiseGain = audioCtx.createGain();
               noiseGain.gain.setValueAtTime(0.15, now + 0.4);
               noiseGain.gain.linearRampToValueAtTime(0, now + 1.0);
-              noise.connect(noiseGain);
-              noiseGain.connect(audioCtx.destination);
-              noise.start(now + 0.4);
-              noise.stop(now + 1.0);
+              noise.connect(noiseGain); noiseGain.connect(audioCtx.destination);
+              noise.start(now + 0.4); noise.stop(now + 1.0);
             } catch (e) {}
           };
           if (audioCtx.state === 'suspended') audioCtx.resume().then(startSound);
           else startSound();
         } catch (e) {}
       }
-      // ========== 烟花爆炸音效 ==========
       function playFireworkBoom() {
         if (!soundEnabled) return;
         try {
@@ -377,7 +454,6 @@
           const play = () => {
             try {
               const now = audioCtx.currentTime;
-              // 低频嘭声
               const osc = audioCtx.createOscillator();
               const gain = audioCtx.createGain();
               osc.type = 'sine';
@@ -385,11 +461,8 @@
               osc.frequency.exponentialRampToValueAtTime(40, now + 0.3);
               gain.gain.setValueAtTime(0.3, now);
               gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-              osc.connect(gain);
-              gain.connect(audioCtx.destination);
-              osc.start(now);
-              osc.stop(now + 0.4);
-              // 噪声爆炸
+              osc.connect(gain); gain.connect(audioCtx.destination);
+              osc.start(now); osc.stop(now + 0.4);
               const bufSize = Math.floor(audioCtx.sampleRate * 0.3);
               const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
               const d = buf.getChannelData(0);
@@ -399,88 +472,68 @@
               const ng = audioCtx.createGain();
               ng.gain.setValueAtTime(0.2, now);
               ng.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-              src.connect(ng);
-              ng.connect(audioCtx.destination);
-              src.start(now);
-              src.stop(now + 0.3);
+              src.connect(ng); ng.connect(audioCtx.destination);
+              src.start(now); src.stop(now + 0.3);
             } catch(e) {}
           };
           if (audioCtx.state === 'suspended') audioCtx.resume().then(play);
           else play();
         } catch(e) {}
       }
-      // ========== 背景粒子 ==========
       const particlesContainer = document.getElementById('particles');
       for (let i = 0; i < 60; i++) {
         const particle = document.createElement('div');
         particle.className = 'particle';
         const size = Math.random() * 2.5 + 1;
-        particle.style.width = size + 'px';
-        particle.style.height = size + 'px';
+        particle.style.width = size + 'px'; particle.style.height = size + 'px';
         particle.style.left = Math.random() * 100 + '%';
         particle.style.top = Math.random() * 100 + '%';
         particle.style.animationDelay = Math.random() * 8 + 's';
         particle.style.animationDuration = (Math.random() * 8 + 6) + 's';
         particlesContainer.appendChild(particle);
       }
-      // ========== 数据存储 ==========
       let stars = [];
       let bgStarCount = 0;
       let currentViewingIndex = -1;
-      const STORAGE_KEY = 'pengpeng_stars';
-      const BG_STARS_KEY = 'pengpeng_bg_stars';
+      const STORAGE_KEY = 'pengpeng_stars_' + sessionId;
+      const BG_STARS_KEY = 'pengpeng_bg_stars_' + sessionId;
       function loadStars() {
         try {
           const stored = localStorage.getItem(STORAGE_KEY);
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            stars = Array.isArray(parsed) ? parsed : [];
-          }
+          if (stored) { const parsed = JSON.parse(stored); stars = Array.isArray(parsed) ? parsed : []; }
         } catch (e) { stars = []; }
       }
       function saveStars() {
-        try {
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(stars));
-        } catch(e) {
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stars)); }
+        catch(e) {
           for (let i = 0; i < stars.length; i++) {
             stars.shift();
-            try {
-              localStorage.setItem(STORAGE_KEY, JSON.stringify(stars));
-              showToast('存储空间已满，最旧的星星已消散');
-              return;
-            } catch(e2) { continue; }
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify(stars)); showToast('存储空间已满，最旧的星星已消散'); return; }
+            catch(e2) { continue; }
           }
         }
       }
       function addStar(starData) {
         if (!Array.isArray(stars)) stars = [];
-        stars.push(starData);
-        saveStars();
-        updateStarCounter();
+        stars.push(starData); saveStars(); updateStarCounter();
       }
       function updateStarCounter() { document.getElementById('starCount').textContent = stars.length; }
-      // ========== 背景星星存储 ==========
       function loadBgStars() {
-        try {
-          const stored = localStorage.getItem(BG_STARS_KEY);
-          if (stored) bgStarCount = parseInt(stored) || 0;
-        } catch(e) { bgStarCount = 0; }
+        try { const stored = localStorage.getItem(BG_STARS_KEY); if (stored) bgStarCount = parseInt(stored) || 0; }
+        catch(e) { bgStarCount = 0; }
       }
       function saveBgStars() {
         try { localStorage.setItem(BG_STARS_KEY, String(bgStarCount)); } catch(e) {}
       }
-      // ========== 生成独特星星SVG ==========
       function generateUniqueStarSVG(text, timestamp) {
         let hash = 0;
         for (let i = 0; i < text.length; i++) { hash = ((hash << 5) - hash) + text.charCodeAt(i); hash |= 0; }
         hash = Math.abs(hash);
         const hue = (hash % 360 + (timestamp % 60) * 6) % 360;
-        const saturation = 65 + (hash % 25);
-        const lightness = 55 + (hash % 20);
+        const saturation = 65 + (hash % 25); const lightness = 55 + (hash % 20);
         const color = `hsl(${hue}, ${saturation}%, ${lightness}%)`;
         const glowColor = `hsl(${hue}, ${saturation}%, ${lightness + 15}%)`;
-        const shapeIndex = hash % 5;
-        const rotation = (hash % 30) - 15;
+        const shapeIndex = hash % 5; const rotation = (hash % 30) - 15;
         let svgContent = '';
         if (shapeIndex === 0) svgContent = `<polygon points="24,2 29,20 48,24 29,28 24,46 19,28 0,24 19,20" fill="${color}" stroke="${glowColor}" stroke-width="0.8" transform="rotate(${rotation} 24 24)"/>`;
         else if (shapeIndex === 1) {
@@ -496,7 +549,6 @@
         }
         return `<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg"><defs><filter id="glow_${timestamp}"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs>${svgContent}</svg>`;
       }
-      // ========== 散落星星 ==========
       function getScatterStarSVG(hue, shapeIndex) {
         const color = `hsl(${hue}, 85%, 72%)`, glow = `hsl(${hue}, 95%, 82%)`;
         let shape = '';
@@ -509,8 +561,7 @@
       }
       function createBackgroundStar() {
         const container = document.getElementById('bgStarsContainer');
-        const starDiv = document.createElement('div');
-        starDiv.className = 'bg-star';
+        const starDiv = document.createElement('div'); starDiv.className = 'bg-star';
         const maxX = window.innerWidth - 40, maxY = window.innerHeight - 40;
         let posX = Math.random() * maxX, posY = Math.random() * maxY;
         if (posX > window.innerWidth - 120 && posY < 80) posY = 80 + Math.random() * (maxY - 80);
@@ -531,15 +582,12 @@
         svg.innerHTML = `<defs><filter id="glow_${uniqueId}"><feGaussianBlur stdDeviation="1.2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter></defs><polygon points="${points.join(' ')}" fill="${color}" stroke="${glowColor}" stroke-width="0.5" filter="url(#glow_${uniqueId})"/>`;
         starDiv.appendChild(svg);
         starDiv.style.left = posX + 'px'; starDiv.style.top = posY + 'px'; starDiv.style.width = size + 'px'; starDiv.style.height = size + 'px';
-        container.appendChild(starDiv);
-        bgStarCount++;
-        saveBgStars();
+        container.appendChild(starDiv); bgStarCount++; saveBgStars();
       }
       function restoreBgStars() {
         for (let i = 0; i < bgStarCount; i++) {
           const container = document.getElementById('bgStarsContainer');
-          const starDiv = document.createElement('div');
-          starDiv.className = 'bg-star';
+          const starDiv = document.createElement('div'); starDiv.className = 'bg-star';
           const maxX = window.innerWidth - 40, maxY = window.innerHeight - 40;
           let posX = Math.random() * maxX, posY = Math.random() * maxY;
           if (posX > window.innerWidth - 120 && posY < 80) posY = 80 + Math.random() * (maxY - 80);
@@ -564,260 +612,139 @@
           container.appendChild(starDiv);
         }
       }
-      // ========== 清空星空+烟花 ==========
       let clearConfirmPending = false;
       let clearConfirmTimer = null;
       const clearSkyBtn = document.getElementById('clearSkyBtn');
       clearSkyBtn.addEventListener('click', () => {
         const container = document.getElementById('bgStarsContainer');
         const bgStars = container.querySelectorAll('.bg-star');
-        if (bgStars.length === 0) {
-          showToast('星空已经是空的了');
-          return;
-        }
+        if (bgStars.length === 0) { showToast('星空已经是空的了'); return; }
         if (!clearConfirmPending) {
           clearConfirmPending = true;
           showToast('再按一次清空星空+放烟花🎆');
           clearConfirmTimer = setTimeout(() => { clearConfirmPending = false; }, 2000);
           return;
         }
-        clearConfirmPending = false;
-        clearTimeout(clearConfirmTimer);
-        // 逐个消失
-        bgStars.forEach((star, i) => {
-          setTimeout(() => {
-            star.classList.add('vanishing');
-          }, i * 50);
-        });
-        // 等消失完后清空+放烟花
+        clearConfirmPending = false; clearTimeout(clearConfirmTimer);
+        bgStars.forEach((star, i) => { setTimeout(() => { star.classList.add('vanishing'); }, i * 50); });
         const vanishTime = bgStars.length * 50 + 700;
-        setTimeout(() => {
-          container.innerHTML = '';
-          bgStarCount = 0;
-          saveBgStars();
-          startFireworks();
-        }, vanishTime);
+        setTimeout(() => { container.innerHTML = ''; bgStarCount = 0; saveBgStars(); startFireworks(); }, vanishTime);
       });
-      // ========== 烟花系统 ==========
       function startFireworks() {
         const canvas = document.getElementById('fireworksCanvas');
         const ctx = canvas.getContext('2d');
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
+        canvas.width = window.innerWidth; canvas.height = window.innerHeight;
         canvas.style.display = 'block';
-        const fireworks = [];
-        const particles = [];
-        const rocketCount = 5 + Math.floor(Math.random() * 4); // 5-8发
-        let rocketsLaunched = 0;
-        let animId = null;
+        const fireworks = []; const particles = [];
+        const rocketCount = 5 + Math.floor(Math.random() * 4);
+        let rocketsLaunched = 0; let animId = null;
         function launchRocket() {
           if (rocketsLaunched >= rocketCount) return;
           const x = canvas.width * 0.2 + Math.random() * canvas.width * 0.6;
           const targetY = canvas.height * 0.15 + Math.random() * canvas.height * 0.35;
           const hue = Math.floor(Math.random() * 360);
-          fireworks.push({
-            x: x,
-            y: canvas.height,
-            targetY: targetY,
-            hue: hue,
-            speed: 6 + Math.random() * 3,
-            trail: [],
-            alive: true
-          });
+          fireworks.push({ x, y: canvas.height, targetY, hue, speed: 6 + Math.random() * 3, trail: [] });
           rocketsLaunched++;
-          if (rocketsLaunched < rocketCount) {
-            setTimeout(launchRocket, 300 + Math.random() * 400);
-          }
+          if (rocketsLaunched < rocketCount) setTimeout(launchRocket, 300 + Math.random() * 400);
         }
         function explode(x, y, hue) {
           const count = 40 + Math.floor(Math.random() * 30);
           for (let i = 0; i < count; i++) {
             const angle = (i / count) * Math.PI * 2 + (Math.random() - 0.5) * 0.5;
             const speed = 2 + Math.random() * 5;
-            const hueVar = hue + Math.floor(Math.random() * 40 - 20);
-            particles.push({
-              x: x, y: y,
-              vx: Math.cos(angle) * speed,
-              vy: Math.sin(angle) * speed,
-              hue: hueVar,
-              alpha: 1,
-              decay: 0.012 + Math.random() * 0.015,
-              size: 2 + Math.random() * 2,
-              gravity: 0.04 + Math.random() * 0.03
-            });
+            particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+              hue: hue + Math.floor(Math.random() * 40 - 20), alpha: 1,
+              decay: 0.012 + Math.random() * 0.015, size: 2 + Math.random() * 2,
+              gravity: 0.04 + Math.random() * 0.03 });
           }
-          playFireworkBoom();
-          vibrate(50);
+          playFireworkBoom(); vibrate(50);
         }
         function update() {
           ctx.globalCompositeOperation = 'destination-out';
-          ctx.fillStyle = 'rgba(0,0,0,0.15)';
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = 'rgba(0,0,0,0.15)'; ctx.fillRect(0, 0, canvas.width, canvas.height);
           ctx.globalCompositeOperation = 'lighter';
-          // 更新烟花
           for (let i = fireworks.length - 1; i >= 0; i--) {
-            const fw = fireworks[i];
-            fw.trail.push({ x: fw.x, y: fw.y });
+            const fw = fireworks[i]; fw.trail.push({ x: fw.x, y: fw.y });
             if (fw.trail.length > 8) fw.trail.shift();
-            fw.y -= fw.speed;
-            fw.x += (Math.random() - 0.5) * 0.5;
-            // 画尾迹
+            fw.y -= fw.speed; fw.x += (Math.random() - 0.5) * 0.5;
             for (let t = 0; t < fw.trail.length; t++) {
-              const alpha = (t / fw.trail.length) * 0.6;
-              ctx.beginPath();
-              ctx.arc(fw.trail[t].x, fw.trail[t].y, 2, 0, Math.PI * 2);
-              ctx.fillStyle = `hsla(${fw.hue}, 100%, 80%, ${alpha})`;
-              ctx.fill();
+              ctx.beginPath(); ctx.arc(fw.trail[t].x, fw.trail[t].y, 2, 0, Math.PI * 2);
+              ctx.fillStyle = `hsla(${fw.hue}, 100%, 80%, ${(t / fw.trail.length) * 0.6})`; ctx.fill();
             }
-            // 画火箭头
-            ctx.beginPath();
-            ctx.arc(fw.x, fw.y, 3, 0, Math.PI * 2);
-            ctx.fillStyle = `hsl(${fw.hue}, 100%, 90%)`;
-            ctx.fill();
-            if (fw.y <= fw.targetY) {
-              explode(fw.x, fw.y, fw.hue);
-              fireworks.splice(i, 1);
-            }
+            ctx.beginPath(); ctx.arc(fw.x, fw.y, 3, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${fw.hue}, 100%, 90%)`; ctx.fill();
+            if (fw.y <= fw.targetY) { explode(fw.x, fw.y, fw.hue); fireworks.splice(i, 1); }
           }
-          // 更新粒子
           for (let i = particles.length - 1; i >= 0; i--) {
-            const p = particles[i];
-            p.x += p.vx;
-            p.y += p.vy;
-            p.vy += p.gravity;
-            p.vx *= 0.99;
-            p.alpha -= p.decay;
-            if (p.alpha <= 0) {
-              particles.splice(i, 1);
-              continue;
-            }
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-            ctx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${p.alpha})`;
-            ctx.fill();
+            const p = particles[i]; p.x += p.vx; p.y += p.vy; p.vy += p.gravity; p.vx *= 0.99; p.alpha -= p.decay;
+            if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = `hsla(${p.hue}, 100%, 65%, ${p.alpha})`; ctx.fill();
           }
-          // 判断是否全部结束
           if (fireworks.length === 0 && particles.length === 0 && rocketsLaunched >= rocketCount) {
-            cancelAnimationFrame(animId);
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            canvas.style.display = 'none';
-            return;
+            cancelAnimationFrame(animId); ctx.clearRect(0, 0, canvas.width, canvas.height);
+            canvas.style.display = 'none'; return;
           }
           animId = requestAnimationFrame(update);
         }
-        launchRocket();
-        animId = requestAnimationFrame(update);
+        launchRocket(); animId = requestAnimationFrame(update);
       }
-      // ========== 批量删除 ==========
-      let batchMode = false;
-      let selectedIndices = new Set();
+      let batchMode = false; let selectedIndices = new Set();
       const batchDeleteBtn = document.getElementById('batchDeleteBtn');
       const batchActions = document.getElementById('batchActions');
       const confirmBatchBtn = document.getElementById('confirmBatchBtn');
       const cancelBatchBtn = document.getElementById('cancelBatchBtn');
       function renderGalaxy() {
-        const content = document.getElementById('galaxyContent');
-        content.innerHTML = '';
-        if (stars.length === 0) {
-          content.innerHTML = '<div class="empty-hint">还没有星星<br>去记一些小事吧</div>';
-          return;
-        }
+        const content = document.getElementById('galaxyContent'); content.innerHTML = '';
+        if (stars.length === 0) { content.innerHTML = '<div class="empty-hint">还没有星星<br>去记一些小事吧</div>'; return; }
         stars.forEach((star, index) => {
-          const div = document.createElement('div');
-          div.className = 'galaxy-star';
+          const div = document.createElement('div'); div.className = 'galaxy-star';
           if (batchMode && selectedIndices.has(index)) div.classList.add('selected');
           div.innerHTML = star.svg;
-          div.addEventListener('click', (e) => {
-            if (batchMode) {
-              if (selectedIndices.has(index)) {
-                selectedIndices.delete(index);
-                div.classList.remove('selected');
-              } else {
-                selectedIndices.add(index);
-                div.classList.add('selected');
-              }
-            } else {
-              openStarDetail(index);
-            }
+          div.addEventListener('click', () => {
+            if (batchMode) { if (selectedIndices.has(index)) { selectedIndices.delete(index); div.classList.remove('selected'); } else { selectedIndices.add(index); div.classList.add('selected'); } }
+            else openStarDetail(index);
           });
           content.appendChild(div);
         });
       }
-      function enterBatchMode() {
-        batchMode = true;
-        selectedIndices.clear();
-        batchDeleteBtn.style.display = 'none';
-        batchActions.classList.add('visible');
-        renderGalaxy();
-      }
-      function exitBatchMode() {
-        batchMode = false;
-        selectedIndices.clear();
-        batchDeleteBtn.style.display = 'inline-block';
-        batchActions.classList.remove('visible');
-        renderGalaxy();
-      }
+      function enterBatchMode() { batchMode = true; selectedIndices.clear(); batchDeleteBtn.style.display = 'none'; batchActions.classList.add('visible'); renderGalaxy(); }
+      function exitBatchMode() { batchMode = false; selectedIndices.clear(); batchDeleteBtn.style.display = 'inline-block'; batchActions.classList.remove('visible'); renderGalaxy(); }
       batchDeleteBtn.addEventListener('click', enterBatchMode);
       cancelBatchBtn.addEventListener('click', exitBatchMode);
       confirmBatchBtn.addEventListener('click', () => {
-        if (selectedIndices.size === 0) {
-          showToast('还没有选择星星');
-          return;
-        }
+        if (selectedIndices.size === 0) { showToast('还没有选择星星'); return; }
         const indices = Array.from(selectedIndices).sort((a,b) => b-a);
-        indices.forEach(i => { stars.splice(i, 1); });
-        saveStars();
-        updateStarCounter();
-        showToast(`已删除 ${indices.length} 颗星星`);
-        exitBatchMode();
-        renderGalaxy();
+        indices.forEach(i => stars.splice(i, 1));
+        saveStars(); updateStarCounter(); showToast(`已删除 ${indices.length} 颗星星`);
+        exitBatchMode(); renderGalaxy();
         if (currentViewingIndex !== -1 && indices.includes(currentViewingIndex)) closeStarDetail();
       });
-      // ========== 星系弹窗 ==========
-      function showGalaxy() {
-        renderGalaxy();
-        if (batchMode) exitBatchMode();
-        document.getElementById('galaxyModal').classList.add('open');
-      }
-      function hideGalaxy() {
-        document.getElementById('galaxyModal').classList.remove('open');
-        if (batchMode) exitBatchMode();
-      }
-      // ========== 星星详情 ==========
+      function showGalaxy() { renderGalaxy(); if (batchMode) exitBatchMode(); document.getElementById('galaxyModal').classList.add('open'); }
+      function hideGalaxy() { document.getElementById('galaxyModal').classList.remove('open'); if (batchMode) exitBatchMode(); }
       function openStarDetail(index) {
         if (index < 0 || index >= stars.length) return;
-        currentViewingIndex = index;
-        const star = stars[index];
+        currentViewingIndex = index; const star = stars[index];
         document.getElementById('detailStarIcon').innerHTML = star.svg;
         const svgEl = document.getElementById('detailStarIcon').querySelector('svg');
         if (svgEl) { svgEl.setAttribute('width', '64'); svgEl.setAttribute('height', '64'); }
         document.getElementById('detailText').textContent = star.text || '(当时没有记录文字)';
         const date = new Date(star.time);
-        document.getElementById('detailTime').textContent =
-          `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,'0')}/${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
+        document.getElementById('detailTime').textContent = `${date.getFullYear()}/${String(date.getMonth()+1).padStart(2,'0')}/${String(date.getDate()).padStart(2,'0')} ${String(date.getHours()).padStart(2,'0')}:${String(date.getMinutes()).padStart(2,'0')}`;
         document.getElementById('starDetailModal').classList.add('open');
       }
-      function closeStarDetail() {
-        document.getElementById('starDetailModal').classList.remove('open');
-        currentViewingIndex = -1;
-      }
+      function closeStarDetail() { document.getElementById('starDetailModal').classList.remove('open'); currentViewingIndex = -1; }
       function handleDeleteStar() {
         if (currentViewingIndex >= 0 && currentViewingIndex < stars.length) {
-          stars.splice(currentViewingIndex, 1);
-          saveStars();
-          updateStarCounter();
-          showToast('这颗星星的记忆已消散');
-          closeStarDetail();
-          renderGalaxy();
+          stars.splice(currentViewingIndex, 1); saveStars(); updateStarCounter();
+          showToast('这颗星星的记忆已消散'); closeStarDetail(); renderGalaxy();
         }
       }
-      // ========== 散落特效 ==========
       function triggerScatterEffect(centerX, centerY) {
         const starCount = 28;
         const colors = [45, 180, 280, 340, 60, 200, 320, 15, 150, 260, 100, 30, 220, 350, 170, 290, 80, 130, 310, 50];
         for (let i = 0; i < starCount; i++) {
-          const star = document.createElement('div');
-          star.className = 'scatter-star';
+          const star = document.createElement('div'); star.className = 'scatter-star';
           const hue = colors[i % colors.length] + Math.floor(Math.random() * 30);
           star.innerHTML = getScatterStarSVG(hue, i % 5);
           const angle = (i / starCount) * Math.PI * 2 + (Math.random() - 0.5) * 0.6;
@@ -832,30 +759,24 @@
           star.style.width = '16px'; star.style.height = '16px';
           star.style.animationDelay = (Math.random() * 0.06) + 's';
           document.body.appendChild(star);
-          setTimeout(() => { star.remove(); }, 2000);
+          setTimeout(() => star.remove(), 2000);
         }
         const centerBigStar = document.createElement('div');
         centerBigStar.style.cssText = `position:fixed;z-index:29;pointer-events:none;left:${centerX}px;top:${centerY}px;width:64px;height:64px;transform:translate(-50%,-50%) scale(0);transition:all 0.8s cubic-bezier(0.25,0.1,0.15,1.2);`;
-        if (stars.length > 0) {
-          centerBigStar.innerHTML = stars[stars.length-1].svg;
-          const svgEl = centerBigStar.querySelector('svg');
-          if (svgEl) { svgEl.setAttribute('width','64'); svgEl.setAttribute('height','64'); }
-        }
+        if (stars.length > 0) { centerBigStar.innerHTML = stars[stars.length-1].svg; const svgEl = centerBigStar.querySelector('svg'); if (svgEl) { svgEl.setAttribute('width','64'); svgEl.setAttribute('height','64'); } }
         document.body.appendChild(centerBigStar);
-        requestAnimationFrame(() => { centerBigStar.style.transform = 'translate(-50%,-50%) scale(1)'; });
+        requestAnimationFrame(() => centerBigStar.style.transform = 'translate(-50%,-50%) scale(1)');
         setTimeout(() => {
           const dashboard = document.getElementById('starDashboard');
           const dashRect = dashboard.getBoundingClientRect();
-          const targetX = dashRect.left + dashRect.width/2, targetY = dashRect.top + dashRect.height/2;
-          centerBigStar.style.left = targetX + 'px'; centerBigStar.style.top = targetY + 'px';
+          centerBigStar.style.left = (dashRect.left + dashRect.width/2) + 'px';
+          centerBigStar.style.top = (dashRect.top + dashRect.height/2) + 'px';
           centerBigStar.style.transform = 'translate(-50%,-50%) scale(0.5)'; centerBigStar.style.opacity = '0.6';
         }, 500);
-        setTimeout(() => { centerBigStar.remove(); }, 1400);
+        setTimeout(() => centerBigStar.remove(), 1400);
       }
-      // ========== 工具 ==========
       function vibrate(p) { if (navigator.vibrate) navigator.vibrate(p); }
       function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2000); }
-      // ========== 黑洞核心 ==========
       const throwBtn = document.getElementById('throwBtn');
       const textInput = document.getElementById('textInput');
       const blackHole = document.getElementById('blackHole');
@@ -863,20 +784,16 @@
       function triggerBlackHole() {
         const text = textInput.value.trim();
         if (!text) { showToast('写点什么再丢进去吧'); vibrate(30); return; }
-        textInput.blur();
-        window.scrollTo(0, 0);
-        throwBtn.disabled = true;
+        textInput.blur(); window.scrollTo(0, 0); throwBtn.disabled = true;
         setTimeout(() => {
-          playStarChime();
-          vibrate([30,50,30]);
+          playStarChime(); vibrate([30,50,30]);
           const textRect = textInput.getBoundingClientRect();
           const holeRect = blackHoleWrapper.getBoundingClientRect();
           const centerX = holeRect.left + holeRect.width/2;
           const centerY = holeRect.top + holeRect.height/2;
           const chars = text.split('');
           chars.forEach((char, index) => {
-            const span = document.createElement('span');
-            span.textContent = char;
+            const span = document.createElement('span'); span.textContent = char;
             span.style.position = 'fixed';
             span.style.left = (textRect.left + Math.random()*textRect.width) + 'px';
             span.style.top = (textRect.top + Math.random()*textRect.height) + 'px';
@@ -888,7 +805,7 @@
               span.style.transform = `translate(${centerX - parseFloat(span.style.left)}px, ${centerY - parseFloat(span.style.top)}px) scale(0.2) rotate(${Math.random()*720}deg)`;
               span.style.opacity = '0';
             });
-            setTimeout(() => { span.remove(); }, 700 + index*10);
+            setTimeout(() => span.remove(), 700 + index*10);
           });
           textInput.value = '';
           setTimeout(() => {
@@ -903,39 +820,22 @@
               const timestamp = Date.now();
               const svgString = generateUniqueStarSVG(text, timestamp);
               addStar({ svg: svgString, text: text.slice(0,200), time: timestamp });
-              const holeCenterX = holeRect.left + holeRect.width/2;
-              const holeCenterY = holeRect.top + holeRect.height/2;
-              triggerScatterEffect(holeCenterX, holeCenterY);
+              triggerScatterEffect(holeRect.left + holeRect.width/2, holeRect.top + holeRect.height/2);
               createBackgroundStar();
-            } catch(e) {
-              console.error('星星创建出错:', e);
-              showToast('出错: ' + e.message);
-            } finally {
-              throwBtn.disabled = false;
-            }
+            } catch(e) { showToast('出错: ' + e.message); }
+            finally { throwBtn.disabled = false; }
           }, 800);
         }, 300);
       }
       throwBtn.addEventListener('click', triggerBlackHole);
-      textInput.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); triggerBlackHole(); }
-      });
-      // ========== 语音提示 ==========
-      document.getElementById('voiceHintBtn').addEventListener('click', () => {
-        showToast('点击输入框 → 按键盘上的🎤即可语音输入');
-      });
-      // ========== 弹窗交互 ==========
+      textInput.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.ctrlKey) { e.preventDefault(); triggerBlackHole(); } });
+      document.getElementById('voiceHintBtn').addEventListener('click', () => showToast('点击输入框 → 按键盘上的🎤即可语音输入'));
       document.getElementById('starDashboard').addEventListener('click', showGalaxy);
       document.getElementById('closeGalaxy').addEventListener('click', hideGalaxy);
-      document.getElementById('galaxyModal').addEventListener('click', (e) => {
-        if(e.target === document.getElementById('galaxyModal')) hideGalaxy();
-      });
+      document.getElementById('galaxyModal').addEventListener('click', (e) => { if(e.target === document.getElementById('galaxyModal')) hideGalaxy(); });
       document.getElementById('closeDetailBtn').addEventListener('click', closeStarDetail);
       document.getElementById('deleteStarBtn').addEventListener('click', handleDeleteStar);
-      document.getElementById('starDetailModal').addEventListener('click', (e) => {
-        if(e.target === document.getElementById('starDetailModal')) closeStarDetail();
-      });
-      // ========== 反馈弹窗 ==========
+      document.getElementById('starDetailModal').addEventListener('click', (e) => { if(e.target === document.getElementById('starDetailModal')) closeStarDetail(); });
       const feedbackTrigger = document.getElementById('feedbackTrigger');
       const feedbackModal = document.getElementById('feedbackModal');
       const feedbackOverlay = document.getElementById('feedbackOverlay');
@@ -944,20 +844,13 @@
         if(isOpen){ feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active'); }
         else { feedbackModal.classList.add('open'); feedbackOverlay.classList.add('active'); }
       });
-      feedbackOverlay.addEventListener('click', () => {
-        feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active');
-      });
-      // ========== 图片灯箱 ==========
+      feedbackOverlay.addEventListener('click', () => { feedbackModal.classList.remove('open'); feedbackOverlay.classList.remove('active'); });
       const qrImage = document.getElementById('qrImage');
       const lightbox = document.getElementById('imgLightbox');
       const lightboxImg = document.getElementById('lightboxImg');
       qrImage.addEventListener('click', () => { lightboxImg.src = qrImage.src; lightbox.classList.add('open'); });
-      lightbox.addEventListener('click', () => { lightbox.classList.remove('open'); });
-      // ========== 启动 ==========
-      loadStars();
-      loadBgStars();
-      updateStarCounter();
-      restoreBgStars();
+      lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
+      loadStars(); loadBgStars(); updateStarCounter(); restoreBgStars();
     })();
   </script>
 </body>
