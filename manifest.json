@@ -2,7 +2,7 @@
   "name": "碰碰星",
   "short_name": "碰碰星",
   "description": "记录小事，变成星星",
-  "start_url": "./",
+ 
   "display": "standalone",
   "background_color": "#0a0a2e",
   "theme_color": "#0a0a2e",

@@ -282,10 +282,16 @@ if(!new URLSearchParams(location.search).get('s')){
     .add-to-home{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);color:#fff;padding:10px 20px;border-radius:20px;font-size:0.8rem;z-index:999;animation:floatUp 2s ease-in-out infinite;cursor:pointer;white-space:nowrap}
 .add-to-home .close-tip{margin-left:8px;opacity:0.6}
 @keyframes floatUp{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
+.add-home-btn{position:fixed;bottom:20px;right:20px;z-index:998;width:36px;height:36px;border-radius:50%;background:rgba(30,30,50,0.7);backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.9rem;color:#999;transition:all 0.3s}
+.add-home-btn:active{background:rgba(60,60,80,0.7);transform:scale(0.94)}
+.add-home-tip{position:fixed;bottom:64px;right:20px;z-index:999;background:rgba(22,22,38,0.96);backdrop-filter:blur(15px);border-radius:14px;padding:14px 18px;border:1px solid rgba(255,255,255,0.1);font-size:0.8rem;color:#ccc;line-height:1.6;max-width:220px;opacity:0;pointer-events:none;transform:translateY(8px);transition:all 0.25s}
+.add-home-tip.open{opacity:1;pointer-events:auto;transform:translateY(0)}
   </style>
 </head>
 <body>
   <div class="add-to-home" id="homeTip" style="display:none">📌 点分享 → 添加到主屏幕，体验更好！<span class="close-tip">✕</span></div>
+  <div class="add-home-btn" id="addHomeBtn" style="display:none">🏠</div>
+<div class="add-home-tip" id="addHomeTip">点浏览器底部的<span style="color:#ffd966">分享按钮</span> → 选"<span style="color:#ffd966">添加到主屏幕</span>"即可</div>
   <div class="landing-page" id="landingPage">
     <div class="landing-stars">🌌</div>
     <div class="landing-title">碰碰星</div>
@@ -412,15 +418,23 @@ const landingPage = document.getElementById('landingPage');
       }
       landingPage.classList.add('hidden');
       if(!window.matchMedia('(display-mode:standalone)').matches&&!window.navigator.standalone){
-  document.getElementById('homeTip').style.display='block';
+  if(!localStorage.getItem('pengpeng_home_tip_seen_'+sessionId)){
+    document.getElementById('homeTip').style.display='block';
+  }
+  document.getElementById('addHomeBtn').style.display='flex';
 }
 document.getElementById('homeTip').addEventListener('click',function(){
   this.style.display='none';
-  localStorage.setItem('pengpeng_home_tip_dismissed_'+sessionId,'1');
+  localStorage.setItem('pengpeng_home_tip_seen_'+sessionId,'1');
 });
-if(localStorage.getItem('pengpeng_home_tip_dismissed_'+sessionId)==='1'){
-  document.getElementById('homeTip').style.display='none';
-}
+document.getElementById('addHomeBtn').addEventListener('click',function(){
+  document.getElementById('addHomeTip').classList.toggle('open');
+});
+document.addEventListener('click',function(e){
+  if(!e.target.closest('#addHomeBtn')&&!e.target.closest('#addHomeTip')){
+    document.getElementById('addHomeTip').classList.remove('open');
+  }
+});
 
       let soundEnabled = false;
       const soundToggle = document.getElementById('soundToggle');
