@@ -13,9 +13,13 @@
     *{margin:0;padding:0;box-sizing:border-box}
     body{
       background: radial-gradient(ellipse at center, #0d0d1a 0%, #02020a 100%);
-      min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
-      font-family: -apple-system, sans-serif;padding:20px;overflow-x:hidden;color:#e0e0e0;
-      -webkit-tap-highlight-color: transparent;user-select:none;position:relative;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-family: -apple-system, sans-serif;padding:20px;overflow-x:hidden;color:#e0e0e0;
+  -webkit-tap-highlight-color: transparent;user-select:none;position:relative;
+  padding-top: calc(20px + env(safe-area-inset-top));
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  padding-left: calc(20px + env(safe-area-inset-left));
+  padding-right: calc(20px + env(safe-area-inset-right));
     }
     .landing-page{
       position:fixed;top:0;left:0;width:100%;height:100%;z-index:500;
@@ -141,7 +145,7 @@
       justify-content:center;cursor:pointer;flex:0 0 auto;font-size:1.3rem;
     }
     .voice-btn:active{transform:scale(0.94)}
-    .top-right-area{position:fixed;top:20px;right:20px;z-index:20;display:flex;gap:10px;align-items:center}
+    .top-right-area{position:fixed;top: calc(20px + env(safe-area-inset-top));right: calc(20px + env(safe-area-inset-right));z-index:20;display:flex;gap:10px;align-items:center}
     .sound-toggle{
       background:rgba(15,15,25,0.8);backdrop-filter:blur(10px);border-radius:50%;
       width:38px;height:38px;display:flex;align-items:center;justify-content:center;
@@ -233,7 +237,7 @@
     }
     .toast.show{opacity:1}
     .feedback-trigger{
-      position:fixed;top:20px;left:20px;z-index:50;width:38px;height:38px;
+      position:fixed;top: calc(20px + env(safe-area-inset-top));left: calc(20px + env(safe-area-inset-left));z-index:50;width:38px;height:38px;
       border-radius:50%;background:rgba(30,30,50,0.6);backdrop-filter:blur(8px);
       border:1px solid rgba(255,255,255,0.12);display:flex;align-items:center;
       justify-content:center;cursor:pointer;font-size:1rem;color:#999;transition:all 0.3s;
@@ -380,8 +384,10 @@
     (function() {
     if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
       const urlParams = new URLSearchParams(window.location.search);
-      const sessionId = urlParams.get('s');
-      const landingPage = document.getElementById('landingPage');
+let sessionId = urlParams.get('s');
+if(sessionId){localStorage.setItem('pengpeng_sid',sessionId);}
+else{sessionId=localStorage.getItem('pengpeng_sid');}
+const landingPage = document.getElementById('landingPage');
       
       if (!sessionId) {
         landingPage.classList.remove('hidden');
