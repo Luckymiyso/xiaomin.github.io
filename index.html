@@ -9,7 +9,14 @@
   <link rel="manifest" href="manifest.json">
   
   <title>碰碰星 · 你的随身情绪充电站</title>
+  <script>
+if(!new URLSearchParams(location.search).get('s')){
+  var sid=localStorage.getItem('pengpeng_sid');
+  if(sid)location.replace(location.pathname+'?s='+sid+location.hash);
+}
+</script>
   <style>
+    
     *{margin:0;padding:0;box-sizing:border-box}
     body{
       background: radial-gradient(ellipse at center, #0d0d1a 0%, #02020a 100%);
