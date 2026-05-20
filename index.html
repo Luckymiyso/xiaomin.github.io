@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="manifest" href="manifest.json">
+
   
   <title>碰碰星 · 你的随身情绪充电站</title>
   
@@ -390,7 +390,7 @@
   
   <script>
     (function() {
-    if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
+  
       const urlParams = new URLSearchParams(window.location.search);
 const sessionId = urlParams.get('s');
 const landingPage = document.getElementById('landingPage');
