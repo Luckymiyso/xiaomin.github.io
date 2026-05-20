@@ -6,6 +6,8 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  
   <title>碰碰星 · 你的随身情绪充电站</title>
   <style>
     *{margin:0;padding:0;box-sizing:border-box}
@@ -266,9 +268,13 @@
     .img-lightbox.open{opacity:1;pointer-events:auto}
     .img-lightbox img{max-width:85%;max-height:80%;border-radius:12px;background:#fff;padding:8px}
     #fireworksCanvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:150;pointer-events:none}
+    .add-to-home{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:rgba(255,255,255,0.15);backdrop-filter:blur(10px);color:#fff;padding:10px 20px;border-radius:20px;font-size:0.8rem;z-index:999;animation:floatUp 2s ease-in-out infinite;cursor:pointer;white-space:nowrap}
+.add-to-home .close-tip{margin-left:8px;opacity:0.6}
+@keyframes floatUp{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-5px)}}
   </style>
 </head>
 <body>
+  <div class="add-to-home" id="homeTip" style="display:none">📌 点分享 → 添加到主屏幕，体验更好！<span class="close-tip">✕</span></div>
   <div class="landing-page" id="landingPage">
     <div class="landing-stars">🌌</div>
     <div class="landing-title">碰碰星</div>
@@ -372,6 +378,7 @@
   
   <script>
     (function() {
+    if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
       const urlParams = new URLSearchParams(window.location.search);
       const sessionId = urlParams.get('s');
       const landingPage = document.getElementById('landingPage');
@@ -391,6 +398,16 @@
         return;
       }
       landingPage.classList.add('hidden');
+      if(!window.matchMedia('(display-mode:standalone)').matches&&!window.navigator.standalone){
+  document.getElementById('homeTip').style.display='block';
+}
+document.getElementById('homeTip').addEventListener('click',function(){
+  this.style.display='none';
+  localStorage.setItem('pengpeng_home_tip_dismissed_'+sessionId,'1');
+});
+if(localStorage.getItem('pengpeng_home_tip_dismissed_'+sessionId)==='1'){
+  document.getElementById('homeTip').style.display='none';
+}
 
       let soundEnabled = false;
       const soundToggle = document.getElementById('soundToggle');
