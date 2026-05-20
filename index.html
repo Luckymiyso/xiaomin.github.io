@@ -9,12 +9,7 @@
   <link rel="manifest" href="manifest.json">
   
   <title>碰碰星 · 你的随身情绪充电站</title>
-  <script>
-if(!new URLSearchParams(location.search).get('s')){
-  var sid=localStorage.getItem('pengpeng_sid');
-  if(sid)location.replace(location.pathname+'?s='+sid+location.hash);
-}
-</script>
+  
   <style>
     
     *{margin:0;padding:0;box-sizing:border-box}
@@ -397,9 +392,7 @@ if(!new URLSearchParams(location.search).get('s')){
     (function() {
     if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js').catch(()=>{});}
       const urlParams = new URLSearchParams(window.location.search);
-let sessionId = urlParams.get('s');
-if(sessionId){localStorage.setItem('pengpeng_sid',sessionId);}
-else{sessionId=localStorage.getItem('pengpeng_sid');}
+const sessionId = urlParams.get('s');
 const landingPage = document.getElementById('landingPage');
       
       if (!sessionId) {
