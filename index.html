@@ -389,6 +389,159 @@
   <div class="toast" id="toast"></div>
   
   <script>
+    // ========== 账号系统配置 ==========
+const API_URL = 'https://min.954174960.workers.dev';
+let currentUser = null;
+
+// ========== 账号界面 ==========
+function showLoginPage() {
+  document.body.innerHTML = `
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;background:#0a0a1a;color:#fff;font-family:sans-serif;padding:30px;">
+      <div style="font-size:3rem;margin-bottom:10px;">⭐</div>
+      <h2 style="color:#ffd966;margin-bottom:5px;">碰碰星</h2>
+      <p style="color:#888;font-size:0.9rem;margin-bottom:30px;">你的随身情绪充电站</p>
+
+      <!-- 登录表单 -->
+      <div id="loginForm" style="width:100%;max-width:300px;">
+        <input id="loginId" placeholder="账号" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:1rem;">
+        <input id="loginPw" type="password" placeholder="密码" style="width:100%;padding:12px;margin-bottom:15px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:1rem;">
+        <button id="loginBtn" style="width:100%;padding:12px;border-radius:25px;background:#ffd966;color:#0a0a1a;font-weight:bold;border:none;font-size:1rem;cursor:pointer;">登录</button>
+        <p style="text-align:center;margin-top:15px;color:#666;font-size:0.85rem;cursor:pointer;" id="showRegister">还没有账号？注册一个</p>
+      </div>
+
+      <!-- 注册表单（默认隐藏） -->
+      <div id="registerForm" style="width:100%;max-width:300px;display:none;">
+        <input id="regCode" placeholder="激活码（挂件附带）" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:1rem;">
+        <input id="regId" placeholder="设置账号" style="width:100%;padding:12px;margin-bottom:10px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:1rem;">
+        <input id="regPw" type="password" placeholder="设置密码" style="width:100%;padding:12px;margin-bottom:15px;border-radius:10px;border:1px solid #333;background:#1a1a2e;color:#fff;font-size:1rem;">
+        <button id="regBtn" style="width:100%;padding:12px;border-radius:25px;background:#ffd966;color:#0a0a1a;font-weight:bold;border:none;font-size:1rem;cursor:pointer;">注册</button>
+        <p style="text-align:center;margin-top:15px;color:#666;font-size:0.85rem;cursor:pointer;" id="showLogin">已有账号？去登录</p>
+      </div>
+
+      <p style="color:#555;font-size:0.75rem;margin-top:40px;">>‿❛ 小Min在等你</p>
+    </div>
+  `;
+
+  // 切换登录/注册
+  document.getElementById('showRegister').onclick = () => {
+    document.getElementById('loginForm').style.display = 'none';
+    document.getElementById('registerForm').style.display = 'block';
+  };
+  document.getElementById('showLogin').onclick = () => {
+    document.getElementById('registerForm').style.display = 'none';
+    document.getElementById('loginForm').style.display = 'block';
+  };
+
+  // 登录事件
+  document.getElementById('loginBtn').onclick = async () => {
+    const userId = document.getElementById('loginId').value.trim();
+    const password = document.getElementById('loginPw').value.trim();
+    if (!userId || !password) return alert('请填写完整');
+
+    try {
+      const resp = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, password })
+      });
+      const result = await resp.json();
+      if (result.success) {
+        // 登录成功，恢复数据
+        localStorage.setItem('pengpeng_user', JSON.stringify({ userId, password }));
+        localStorage.setItem('pengpeng_stars', result.stars);
+        localStorage.setItem('pengpeng_bg_stars', result.bgStars);
+        currentUser = { userId, password };
+        location.reload();
+      } else {
+        alert(result.reason || '登录失败');
+      }
+    } catch(e) {
+      alert('网络错误，请重试');
+    }
+  };
+
+  // 注册事件
+  document.getElementById('regBtn').onclick = async () => {
+    const code = document.getElementById('regCode').value.trim();
+    const userId = document.getElementById('regId').value.trim();
+    const password = document.getElementById('regPw').value.trim();
+    if (!code || !userId || !password) return alert('请填写完整');
+
+    try {
+      const resp = await fetch(`${API_URL}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, userId, password })
+      });
+      const result = await resp.json();
+      if (result.success) {
+        alert('注册成功！请登录');
+        document.getElementById('registerForm').style.display = 'none';
+        document.getElementById('loginForm').style.display = 'block';
+        document.getElementById('loginId').value = userId;
+      } else {
+        alert(result.reason || '注册失败');
+      }
+    } catch(e) {
+      alert('网络错误，请重试');
+    }
+  };
+
+  throw new Error('未登录');
+}
+
+// ========== 初始化 ==========
+(async function init() {
+  // 检查是否已登录
+  const savedUser = localStorage.getItem('pengpeng_user');
+  if (savedUser) {
+    currentUser = JSON.parse(savedUser);
+    // 验证登录状态（快速校验）
+    try {
+      const resp = await fetch(`${API_URL}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(currentUser)
+      });
+      const result = await resp.json();
+      if (!result.success) {
+        localStorage.removeItem('pengpeng_user');
+        showLoginPage();
+        return;
+      }
+      // 登录有效，继续加载
+    } catch(e) {
+      // 网络错误，使用本地缓存
+    }
+  } else {
+    showLoginPage();
+    return;
+  }
+
+  // ========== 以下是你的原有功能代码 ==========
+  // 在这里放你之前的所有黑洞、动画、星星收集等代码
+  // 注意：在保存星星时，同步到云端
+
+  // 修改后的保存函数示例：
+  function saveStarsToCloud() {
+    if (!currentUser) return;
+    const stars = localStorage.getItem('pengpeng_stars') || '[]';
+    const bgStars = localStorage.getItem('pengpeng_bg_stars') || '[]';
+    fetch(`${API_URL}/save`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        userId: currentUser.userId,
+        password: currentUser.password,
+        stars: stars,
+        bgStars: bgStars
+      })
+    }).catch(() => {}); // 静默失败，下次登录时恢复
+  }
+
+  // 在你每次 addStar 后调用 saveStarsToCloud()
+  // ...
+})();
     (function() {
   
       const urlParams = new URLSearchParams(window.location.search);
